@@ -30,7 +30,7 @@ class HomeHeader extends StatelessWidget {
               const SizedBox(height: 15),
               Row(
                 children: [
-                  Image.asset('assets/images/img_avatar_placeholder.png', width: 50, height: 50),
+                  Image.asset('assets/images/avatar.png', width: 50, height: 50),
                   const SizedBox(width: 10),
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
