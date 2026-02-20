@@ -1,21 +1,50 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart'; // Thêm SharedPreferences
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/user_model.dart';
 import '../models/social_login_request.dart';
 
-
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String identifier, String password);
   Future<UserModel> register(String fullName, String identifier, String password);
   Future<UserModel> socialLogin(SocialLoginRequest request);
+  Future<UserModel> getProfile();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final http.Client client;
   AuthRemoteDataSourceImpl({required this.client});
 
+  @override
+  Future<UserModel> getProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+
+    if (token == null || token.isEmpty) {
+      throw ServerException(message: "Không tìm thấy phiên đăng nhập");
+    }
+
+    // Giả sử Backend có endpoint /auth/me để kiểm tra token
+    // Nếu chưa có ApiConstants.getProfile, hãy thêm nó vào file constants
+    final response = await client.get(
+      Uri.parse(ApiConstants.baseUrl + "/auth/me"),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Gửi Token lên để xác thực
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return UserModel.fromJson(jsonDecode(response.body));
+    } else {
+      // Nếu server trả về 401 hoặc lỗi, ném lỗi để Bloc nhảy vào catch
+      throw ServerException(message: "Phiên đăng nhập hết hạn");
+    }
+  }
+
+  // --- Các hàm cũ giữ nguyên ---
   @override
   Future<UserModel> login(String identifier, String password) async {
     final response = await client.post(
@@ -24,14 +53,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       body: jsonEncode({
         'identifier': identifier,
         'password': password,
-        'provider': 'LOCAL', // Khớp với LoginRequest BE
+        'provider': 'LOCAL',
       }),
     );
 
     if (response.statusCode == 200) {
       return UserModel.fromJson(jsonDecode(response.body));
     } else {
-      throw ServerException(); // Em nhớ định nghĩa trong core/errors nhé
+      throw ServerException();
     }
   }
 
@@ -41,7 +70,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       Uri.parse(ApiConstants.register),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'fullName': fullName,   // Đảm bảo key này khớp với field trong RegisterRequest.java
+        'fullName': fullName,
         'identifier': identifier,
         'password': password,
       }),
@@ -50,10 +79,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return UserModel.fromJson(jsonDecode(response.body));
     } else {
-      // Nếu @Valid ở Backend bắt lỗi (ví dụ mật khẩu quá ngắn), nó sẽ trả về lỗi ở đây
       throw ServerException(message: "Đăng ký thất bại: ${response.body}");
     }
   }
+
   @override
   Future<UserModel> socialLogin(SocialLoginRequest request) async {
     final response = await client.post(

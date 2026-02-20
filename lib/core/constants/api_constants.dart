@@ -2,12 +2,12 @@
 class ApiConstants {
   static const String mapboxToken = 'pk.eyJ1IjoidHJ1bmdjaGloYW8iLCJhIjoiY21rYzRid2RlMGF2YzNucG8yM3h4cTZzYyJ9.62ETdJoM5foxkcPAxFe7Wg';
   static const String mapboxBaseUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
-  static const String backendUrl = 'http://192.168.1.5:8080/api/locations';
+  static const String backendUrl = 'http://172.20.10.3:8080/api/locations';
   // static const String backendUrl = 'http://10.0.2.2:8080/api/locations';
   //thay đổi quan lại
 
   // Base URL gốc của server
-  static const String baseUrl = "http://192.168.1.250:8080/api";
+  static const String baseUrl = "http://172.20.10.3:8080/api";
   // static const String baseUrl = "http://10.0.2.2:8080/api";
 
   // Tầng Version

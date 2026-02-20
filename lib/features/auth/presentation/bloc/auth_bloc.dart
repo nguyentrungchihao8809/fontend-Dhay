@@ -123,12 +123,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final token = prefs.getString('access_token');
 
       if (token != null && token.isNotEmpty) {
-        emit(AuthSuccess(UserModel(
-            id: '0',
-            fullName: 'User',
-            email: '',
-            token: token
-        )));
+        try {
+          // 1. Gọi server lấy profile (Lúc này profile trả về User không có token)
+          final user = await authRemoteDataSource.getProfile();
+
+          // 2. "Hợp nhất" User mới với Token cũ đã lưu trong máy
+          final userWithToken = user.copyWith(token: token);
+
+          emit(AuthSuccess(userWithToken));
+          debugPrint("✅ Đã khôi phục phiên đăng nhập cho: ${user.fullName}");
+        } catch (e) {
+          debugPrint("❌ Token hết hạn hoặc server chết: $e");
+          // Tùy chọn: await prefs.remove('access_token');
+          emit(AuthFailure("Phiên đăng nhập hết hạn"));
+        }
       } else {
         emit(AuthInitial());
       }

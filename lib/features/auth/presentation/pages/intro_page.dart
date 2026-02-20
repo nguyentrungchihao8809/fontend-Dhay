@@ -30,6 +30,8 @@ class _IntroPageState extends State<IntroPage> {
     if (!_isTimerDone) return;
     final state = context.read<AuthBloc>().state;
 
+    if (state is AuthInitial || state is AuthLoading) return;
+
     if (state is AuthSuccess) {
       Navigator.pushReplacementNamed(context, '/home');
     } else {

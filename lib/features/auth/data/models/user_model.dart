@@ -1,7 +1,6 @@
 import '../../../../core/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
-  // Constructor gọi đến super với các tham số tương ứng
   UserModel({
     required super.id,
     required super.fullName,
@@ -11,21 +10,28 @@ class UserModel extends UserEntity {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      // Chú ý: Key 'id', 'fullName', 'email' phải khớp 100% với JSON BE trả về
+      // BE trả về Long (số), nên phải toString() để khớp với Entity String
       id: json['id']?.toString() ?? '',
       fullName: json['fullName'] ?? '',
       email: json['email'] ?? '',
+      // BE dùng accessToken. Nếu là getProfile thì trường này sẽ null,
+      // nên ta dùng ?? '' để tránh lỗi.
       token: json['accessToken'] ?? '',
     );
   }
 
-  // Bonus: Hàm này giúp ích khi cần gửi data ngược lại BE
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'fullName': fullName,
-      'email': email,
-      'accessToken': token,
-    };
+  // Hàm này cực kỳ quan trọng để "giữ" token cũ khi BE trả về accessToken = null
+  UserModel copyWith({
+    String? id,
+    String? fullName,
+    String? email,
+    String? token,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      token: token ?? this.token,
+    );
   }
 }
