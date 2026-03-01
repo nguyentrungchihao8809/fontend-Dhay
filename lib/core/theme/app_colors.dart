@@ -5,7 +5,7 @@ class AppColors {
   static const Color primary = Color(0xFF395BFC);
   static const Color black = Color(0xFF000000);
   static const Color white = Color(0xFFFFFFFF);
-  static const Color background = Color(0xFFFEFCFF); // Đã fix trùng tên
+  static const Color background = Color(0xFFFEFCFF);
   static const Color secondaryBackground = Color(0xFFF4F5F5);
   static const Color inputBackground = Color(0xFFE0E0E0);
 
@@ -15,12 +15,16 @@ class AppColors {
   static const Color textGrey = Color(0xFF757575);
   static const Color textLightGrey = Color(0xFFB9B9B9);
 
-  // 3. Màu cho Driver & Home Page (Theo thiết kế của cưng)
+  // 3. Màu cho Driver & Home Page
   static const Color primaryBlack = Color(0xFF1A1A1A);
-  static const Color accentYellow = Color(0xFFFFC107); // Đã fix trùng tên
+  static const Color accentYellow = Color(0xFFFFC107);
   static const Color accentBlue = Color(0xFF2196F3);
   static const Color cardBackground = Color(0xFFFFFFFF);
   static const Color storyYellow = Color(0xFFFFD700);
+
+  // Bổ sung cho màn hình Driver (Info Box & Card)
+  static const Color infoBoxBorder = Color(0xFFE0E0E0);
+  static const Color cardWhite = Color(0xFFFEFCFF);
 
   // 4. Navigation Bar & Buttons
   static const Color navBackground = Color(0xFF0D0D0D);
@@ -40,7 +44,7 @@ class AppColors {
   static const Color darkBrown = Color(0xFF321915);
   static const Color lightGrey = Color(0xFFD9D9D9);
 
-  // Thêm lại các biến này để fix lỗi ở các trang cũ
+  // Biến bổ trợ fix lỗi trang cũ
   static const Color greyText = Color(0xFF757575);
   static const Color lineDivider = Color(0xFFD9D9D9);
   static const Color primaryText = Color(0xFF000000);

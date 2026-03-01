@@ -13,8 +13,9 @@ import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/intro_page.dart';
 import 'features/place/presentation/pages/place_search_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
-import 'features/home_driver/presentation/pages/home_driver_page.dart'; // Import mới cho Driver
-import 'package:ghepxenew/features/auth/presentation/pages/intro1_page.dart';
+import 'features/home_driver/presentation/pages/home_driver_page.dart';
+import 'features/auth/presentation/pages/intro1_page.dart';
+import 'features/auth/presentation/pages/driver_register_page.dart';
 
 // Import Logic/Data
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
@@ -47,10 +48,13 @@ Future<void> _initializeFirebase() async {
   try {
     await Firebase.initializeApp();
     FirebaseMessaging messaging = FirebaseMessaging.instance;
-    messaging.requestPermission(alert: true, badge: true, sound: true);
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+
     messaging.getToken().then((token) {
       debugPrint("FCM TOKEN: $token");
-    }).catchError((e) => debugPrint("Lỗi lấy FCM Token: $e"));
+    }).catchError((e) {
+      debugPrint("Lỗi lấy FCM Token: $e");
+    });
   } catch (e) {
     debugPrint("Lỗi khởi tạo Firebase: $e");
   }
@@ -83,18 +87,18 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Ghep Xe App',
+        title: 'DHAY Driver',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
-          // Sử dụng bảng màu AppColors đã dọn dẹp để đồng bộ
           primaryColor: AppColors.primary,
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
           scaffoldBackgroundColor: AppColors.background,
+          fontFamily: 'Poppins',
         ),
 
-        // Đã đổi route khởi đầu sang trang Driver theo ý cưng
-        initialRoute: '/home_driver',
+        // Đã chỉnh về /home để cưng bắt đầu từ trang chủ nè cưng iu ơi
+        initialRoute: '/home',
 
         routes: {
           '/intro': (context) => const IntroPage(),
@@ -102,7 +106,8 @@ class MyApp extends StatelessWidget {
           '/search': (context) => const PlaceSearchPage(),
           '/home': (context) => const HomePage(),
           '/intro1': (context) => const Intro1Page(),
-          '/home_driver': (context) => const HomeDriverPage(), // Route cho trang Driver
+          '/home_driver': (context) => const HomeDriverPage(),
+          '/register_driver': (context) => const DriverRegisterPage(),
         },
       ),
     );
