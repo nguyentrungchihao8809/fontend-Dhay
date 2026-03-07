@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../pages/save_location_page.dart';
 
-class RecentDestinationItem extends StatelessWidget {
+class RecentDestinationItem extends StatefulWidget {
   final String startLocation;
   final String endLocation;
   final String distance;
@@ -13,6 +14,13 @@ class RecentDestinationItem extends StatelessWidget {
     required this.distance,
     required this.duration,
   });
+
+  @override
+  State<RecentDestinationItem> createState() => _RecentDestinationItemState();
+}
+
+class _RecentDestinationItemState extends State<RecentDestinationItem> {
+  bool _isSaved = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +42,6 @@ class RecentDestinationItem extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Icon Line
               Column(
                 children: [
                   const Icon(Icons.radio_button_checked, size: 14, color: Colors.black),
@@ -43,20 +50,19 @@ class RecentDestinationItem extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 12),
-              // Address Text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      startLocation,
+                      widget.startLocation,
                       style: _textStyle(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      endLocation,
+                      widget.endLocation,
                       style: _textStyle(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -66,23 +72,135 @@ class RecentDestinationItem extends StatelessWidget {
               ),
             ],
           ),
-          // Distance & Duration (Bottom Right)
           Positioned(
             right: 0,
             bottom: 0,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(distance, style: _infoStyle()),
-                Text(duration, style: _infoStyle()),
+                Text(widget.distance, style: _infoStyle()),
+                Text(widget.duration, style: _infoStyle()),
               ],
             ),
           ),
-          // Bookmark Icon (Top Right)
-          const Positioned(
+
+          // --- ICON BOOKMARK VỚI CUSTOM DIALOG ---
+          Positioned(
             right: 0,
             top: 0,
-            child: Icon(Icons.bookmark_border, size: 20, color: Colors.black),
+            child: GestureDetector(
+              onTap: () async {
+                if (!_isSaved) {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SaveLocationPage(
+                        initialPickup: widget.startLocation,
+                        initialDropoff: widget.endLocation,
+                      ),
+                    ),
+                  );
+
+                  if (result == true) {
+                    setState(() {
+                      _isSaved = true;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Đã lưu địa chỉ thành công!")),
+                    );
+                  }
+                } else {
+                  // --- CUSTOM DIALOG ĐÚNG VIBE ---
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Dialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                "Xóa địa chỉ",
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              const Text(
+                                "Cưng có chắc muốn xóa địa chỉ này khỏi danh sách đã lưu không?",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  color: Color(0xFF666666),
+                                ),
+                              ),
+                              const SizedBox(height: 25),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                      ),
+                                      child: const Text(
+                                        "Hủy",
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          color: Color(0xFF959595),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        setState(() => _isSaved = false);
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Đã xóa địa chỉ!")),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        elevation: 0,
+                                      ),
+                                      child: const Text(
+                                        "Xóa",
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+              child: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  size: 20, color: Colors.black),
+            ),
           ),
         ],
       ),
