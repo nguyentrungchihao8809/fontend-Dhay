@@ -77,7 +77,7 @@ class HomeHeader extends StatelessWidget {
                     Positioned(
                       left: 75, top: 10,
                       child: Text(
-                        "Hi . ${profile?.fullName ?? 'BauBau'}",
+                        "Hi . ${profile?.fullName ??'Hành Khách'}",
                         style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 15, color: Colors.black),
                       ),
                     ),
