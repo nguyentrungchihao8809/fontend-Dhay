@@ -107,7 +107,7 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Poppins',
         ),
         // Bạn đang để khởi đầu là tạo chuyến đi, nếu muốn test đăng ký driver thì đổi sang /register_driver
-        initialRoute: '/create_trip',
+        initialRoute: '/register_driver',
         routes: {
           '/intro': (context) => const IntroPage(),
           '/login': (context) => const LoginPage(),

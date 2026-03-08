@@ -189,11 +189,14 @@ class _DriverRegisterPageState extends State<DriverRegisterPage> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: AppColors.textGrey, fontSize: 12),
-            suffixIcon: IconButton(
+            // CHỈ HIỆN ICON DẤU CỘNG NẾU LÀ Ô NGÀY SINH
+            suffixIcon: isDate
+                ? IconButton(
               padding: EdgeInsets.zero,
               icon: const Icon(Icons.add_circle_outline, color: AppColors.textGrey, size: 18),
-              onPressed: isDate ? () => _selectDate(context) : null,
-            ),
+              onPressed: () => _selectDate(context),
+            )
+                : null, // Các ô khác để null để xóa dấu cộng
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.divider)),
             focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 1.2)),
