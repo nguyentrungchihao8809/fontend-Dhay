@@ -1,30 +1,24 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/register_driver_request_model.dart';
+import '../../domain/usecases/register_driver_usecase.dart';
 import 'register_driver_event.dart';
 import 'register_driver_state.dart';
 
 class RegisterDriverBloc extends Bloc<RegisterDriverEvent, RegisterDriverState> {
-  RegisterDriverBloc() : super(RegisterDriverInitial()) {
-    on<RegisterDriverSubmitted>((event, emit) async {
+  final RegisterDriverUsecase registerDriverUsecase;
+
+  RegisterDriverBloc({required this.registerDriverUsecase}) : super(RegisterDriverInitial()) {
+    on<OnRegisterSubmit>((event, emit) async {
       emit(RegisterDriverLoading());
-      try {
-        final request = RegisterDriverRequestModel(
-          licenseNumber: event.licenseNumber,
-          vehiclePlate: event.vehiclePlate,
-          vehicleBrand: event.vehicleBrand,
-          vehicleModel: event.vehicleModel,
-          capacity: event.capacity,
-          vehicleType: event.vehicleType,
-        );
 
-        // Log dữ liệu để kiểm tra
-        print("Gửi dữ liệu qua Backend: ${request.toJson()}");
-        await Future.delayed(const Duration(seconds: 2)); // Giả lập chờ server
+      final result = await registerDriverUsecase(event.registration);
 
-        emit(RegisterDriverSuccess());
-      } catch (e) {
-        emit(RegisterDriverFailure("Lỗi đăng ký: ${e.toString()}"));
-      }
+      result.fold(
+            (failure) => emit(RegisterDriverFailure(failure.message)),
+            (vehicleId) => emit(RegisterDriverSuccess(
+            vehicleId: vehicleId,
+            message: "Đăng ký trở thành tài xế thành công! Vui lòng chờ phê duyệt."
+        )),
+      );
     });
   }
 }

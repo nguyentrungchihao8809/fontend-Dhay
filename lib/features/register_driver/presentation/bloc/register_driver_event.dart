@@ -1,19 +1,18 @@
-abstract class RegisterDriverEvent {}
+import 'package:equatable/equatable.dart';
+import '../../domain/entities/driver_registration.dart';
 
-class RegisterDriverSubmitted extends RegisterDriverEvent {
-  final String licenseNumber;
-  final String vehiclePlate;
-  final String vehicleBrand;
-  final String vehicleModel;
-  final int capacity;
-  final String vehicleType;
+abstract class RegisterDriverEvent extends Equatable {
+  const RegisterDriverEvent();
 
-  RegisterDriverSubmitted({
-    required this.licenseNumber,
-    required this.vehiclePlate,
-    required this.vehicleBrand,
-    required this.vehicleModel,
-    required this.capacity,
-    required this.vehicleType,
-  });
+  @override
+  List<Object> get props => [];
+}
+
+class OnRegisterSubmit extends RegisterDriverEvent {
+  final DriverRegistration registration;
+
+  const OnRegisterSubmit(this.registration);
+
+  @override
+  List<Object> get props => [registration];
 }
