@@ -144,7 +144,7 @@ class MyApp extends StatelessWidget {
           '/home': (context) => const HomePage(),
           '/intro1': (context) => const Intro1Page(),
           '/home_driver': (context) => const HomeDriverPage(),
-          '/register_driver': (context) => const RegisterDriverPage(),
+          '/register_driver': (context) => const DriverRegistrationScreen(),
           '/create_trip': (context) => const CreateTripPage(),
         },
       ),

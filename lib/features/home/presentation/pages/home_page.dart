@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/presentation/bloc/profile_bloc.dart';
 import '../../../auth/presentation/bloc/profile_state.dart';
 // Nhớ import file này để nó biết đường mà bay sang nha cưng
-import '../../../auth/presentation/pages/driver_register_page.dart';
+import '../../../register_driver/presentation/pages/register_driver_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -36,7 +36,7 @@ class HomePage extends StatelessWidget {
                           // Chỉ bấm vào vùng "Hi, BauBau" và Mũi tên mới nhảy trang nè
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const DriverRegisterPage()),
+                            MaterialPageRoute(builder: (context) => const DriverRegistrationScreen()),
                           );
                         },
                         child: state is ProfileLoadSuccess

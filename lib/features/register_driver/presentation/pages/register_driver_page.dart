@@ -8,253 +8,126 @@ import '../bloc/register_driver_bloc.dart';
 import '../bloc/register_driver_event.dart';
 import '../bloc/register_driver_state.dart';
 
-class RegisterDriverPage extends StatefulWidget {
-  const RegisterDriverPage({super.key});
+// ĐỔI TÊN CLASS THÀNH DriverRegistrationScreen
+class DriverRegistrationScreen extends StatefulWidget {
+  const DriverRegistrationScreen({super.key});
 
   @override
-  State<RegisterDriverPage> createState() => _RegisterDriverPageState();
+  State<DriverRegistrationScreen> createState() => _DriverRegistrationScreenState();
 }
 
-class _RegisterDriverPageState extends State<RegisterDriverPage> {
+class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
-  final _licenseController = TextEditingController();
-  final _plateController = TextEditingController();
-  final _modelController = TextEditingController();
+  // 6 Controllers khớp hoàn toàn DriverRegistrationRequest bên Java
+  final _licenseNumberController = TextEditingController();
+  final _vehiclePlateController = TextEditingController();
+  final _vehicleModelController = TextEditingController();
   final _capacityController = TextEditingController();
-
-  // Selection Data
-  String? _selectedType = "MOTORBIKE";
   String? _selectedBrand;
+  String? _selectedType = "MOTORBIKE";
 
-  final List<Map<String, String>> _vehicleTypes = [
-    {"value": "MOTORBIKE", "label": "Xe máy", "max": "1"},
-    {"value": "CAR_4_SEATER", "label": "Ô tô 4 chỗ", "max": "3"},
-    {"value": "CAR_7_SEATER", "label": "Ô tô 7 chỗ", "max": "6"},
+  final List<String> _brands = ["Honda", "Yamaha", "Suzuki", "VinFast", "Toyota", "Khác"];
+  final List<Map<String, String>> _types = [
+    {"value": "MOTORBIKE", "label": "Xe máy"},
+    {"value": "CAR_4_SEATER", "label": "Ô tô 4 chỗ"},
+    {"value": "CAR_7_SEATER", "label": "Ô tô 7 chỗ"},
   ];
-
-  final List<String> _brands = [
-    "Honda", "Yamaha", "Piaggio/Vespa", "Suzuki", "SYM", "VinFast", "Khác"
-  ];
-
-  @override
-  void dispose() {
-    _licenseController.dispose();
-    _plateController.dispose();
-    _modelController.dispose();
-    _capacityController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text("ĐĂNG KÝ TÀI XẾ MỚI", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
       body: BlocListener<RegisterDriverBloc, RegisterDriverState>(
         listener: (context, state) {
           if (state is RegisterDriverSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Chào mừng bác tài mới!"), backgroundColor: Colors.green),
-            );
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Thành công!")));
             Navigator.pushNamedAndRemoveUntil(context, '/home_driver', (route) => false);
-          } else if (state is RegisterDriverFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-            );
           }
         },
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 60),
-              _buildHeader(),
-              const SizedBox(height: 20),
-              Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  _buildMainCard(),
-                  _buildAvatarCircle(),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text("From DHAY", style: GoogleFonts.roboto(fontWeight: FontWeight.w500, fontSize: 16)),
-              const SizedBox(height: 30),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 32),
-            child: Container(
-              width: 80, height: 40,
-              child: const Icon(Icons. car_rental, size: 40), // Thay bằng Image.asset nếu có logo
+          padding: const EdgeInsets.all(25),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildInput("Số bằng lái (licenseNumber)", _licenseNumberController),
+                _buildInput("Biển số xe (vehiclePlate)", _vehiclePlateController, pattern: r'^[0-9]{2}[A-Z]-[0-9]{4,5}$'),
+                _buildDropdown("Hãng xe (vehicleBrand)", _brands, (v) => _selectedBrand = v),
+                _buildDropdown("Loại xe (vehicleType)", _types.map((e) => e['label']!).toList(), (label) {
+                  _selectedType = _types.firstWhere((e) => e['label'] == label)['value'];
+                }),
+                _buildInput("Dòng xe (vehicleModel)", _vehicleModelController),
+                _buildInput("Sức chứa (capacity)", _capacityController, isNumber: true),
+                const SizedBox(height: 40),
+                _buildSubmitButton(),
+              ],
             ),
           ),
         ),
-        Text(
-          "Đăng ký trở thành Driver",
-          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.black),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMainCard() {
-    return Container(
-      margin: const EdgeInsets.only(top: 60, left: 32, right: 32, bottom: 20),
-      padding: const EdgeInsets.fromLTRB(24, 80, 24, 30),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFEFCFF),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, spreadRadius: 4, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            _buildWelcomeBox(),
-            const SizedBox(height: 10),
-
-            // --- Input Fields chuẩn Underline Figma ---
-            _buildUnderlineInput("Số bằng lái", _licenseController),
-            _buildUnderlineInput("Biển số xe (VD: 29A-12345)", _plateController, regExp: r'^[0-9]{2}[A-Z]-[0-9]{4,5}$'),
-
-            _buildUnderlineDropdown("Hãng xe", _brands, _selectedBrand, (val) => setState(() => _selectedBrand = val)),
-
-            _buildUnderlineDropdown("Loại xe", _vehicleTypes.map((e) => e['label']!).toList(),
-                _vehicleTypes.firstWhere((e) => e['value'] == _selectedType)['label'],
-                    (val) {
-                  setState(() {
-                    _selectedType = _vehicleTypes.firstWhere((e) => e['label'] == val)['value'];
-                    _capacityController.clear();
-                  });
-                }
-            ),
-
-            _buildUnderlineInput("Dòng xe (Vision, Exciter...)", _modelController),
-            _buildUnderlineInput("Số ghế trống", _capacityController, isNumber: true),
-
-            const SizedBox(height: 30),
-            _buildSubmitButton(),
-          ],
-        ),
       ),
     );
   }
 
-  // --- WIDGET TẠO INPUT GẠCH CHÂN CHUẨN FIGMA ---
-  Widget _buildUnderlineInput(String hint, TextEditingController ctrl, {bool isNumber = false, String? regExp}) {
-    return TextFormField(
-      controller: ctrl,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w400),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: GoogleFonts.poppins(color: Colors.black.withOpacity(0.4), fontSize: 16),
-        suffixIcon: const Icon(Icons.add_circle_outline, color: Colors.black54, size: 20),
-        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.black26)),
-        focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 1.5)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15),
+  Widget _buildInput(String hint, TextEditingController ctrl, {bool isNumber = false, String? pattern}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: TextFormField(
+        controller: ctrl,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          labelText: hint,
+          border: const OutlineInputBorder(),
+          suffixIcon: const Icon(Icons.edit_note),
+        ),
+        validator: (v) {
+          if (v == null || v.isEmpty) return "Bắt buộc nhập";
+          if (pattern != null && !RegExp(pattern).hasMatch(v)) return "Sai định dạng";
+          return null;
+        },
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) return "Không được để trống";
-        if (regExp != null && !RegExp(regExp).hasMatch(value)) return "Định dạng không hợp lệ";
-        if (isNumber) {
-          final max = _vehicleTypes.firstWhere((e) => e['value'] == _selectedType)['max'];
-          final val = int.tryParse(value);
-          if (val == null || val < 1 || val > int.parse(max!)) return "Tối đa $max chỗ";
-        }
-        return null;
-      },
     );
   }
 
-  // --- WIDGET TẠO DROPDOWN GẠCH CHÂN CHUẨN FIGMA ---
-  Widget _buildUnderlineDropdown(String hint, List<String> items, String? currentVal, Function(String?) onChanged) {
-    return DropdownButtonFormField<String>(
-      value: currentVal,
-      icon: const Icon(Icons.add_circle_outline, color: Colors.black54, size: 20),
-      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.black),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: GoogleFonts.poppins(color: Colors.black.withOpacity(0.4), fontSize: 16),
-        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.black26)),
-        focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.black, width: 1.5)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15),
+  Widget _buildDropdown(String hint, List<String> items, Function(String?) onChanged) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(labelText: hint, border: const OutlineInputBorder()),
+        items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+        onChanged: onChanged,
+        validator: (v) => v == null ? "Bắt buộc chọn" : null,
       ),
-      items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-      onChanged: onChanged,
-      validator: (value) => value == null ? "Vui lòng chọn" : null,
-    );
-  }
-
-  Widget _buildWelcomeBox() {
-    return Column(
-      children: [
-        Text(
-          "Chào mừng bạn đến với DHAY với vai trò tài xế",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          "Vui lòng đảm bảo thông tin phương tiện chính xác, tuân thủ luật giao thông...",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w300, fontSize: 11, color: Colors.black54),
-        ),
-      ],
     );
   }
 
   Widget _buildSubmitButton() {
-    return BlocBuilder<RegisterDriverBloc, RegisterDriverState>(
-      builder: (context, state) {
-        if (state is RegisterDriverLoading) return const CircularProgressIndicator(color: Colors.black);
-        return ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              context.read<RegisterDriverBloc>().add(OnRegisterSubmit(DriverRegistration(
-                licenseNumber: _licenseController.text,
-                vehiclePlate: _plateController.text,
-                vehicleBrand: _selectedBrand ?? "Khác",
-                capacity: int.parse(_capacityController.text),
-                vehicleType: _selectedType!,
-                vehicleModel: _modelController.text,
-              )));
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            minimumSize: const Size(243, 45),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            elevation: 5,
-          ),
-          child: Text("Đăng ký", style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
-        );
+    return ElevatedButton(
+      onPressed: () {
+        if (_formKey.currentState!.validate() && _selectedBrand != null) {
+          context.read<RegisterDriverBloc>().add(OnRegisterSubmit(DriverRegistration(
+            licenseNumber: _licenseNumberController.text,
+            vehiclePlate: _vehiclePlateController.text,
+            vehicleBrand: _selectedBrand!,
+            capacity: int.parse(_capacityController.text),
+            vehicleType: _selectedType!,
+            vehicleModel: _vehicleModelController.text,
+          )));
+        }
       },
-    );
-  }
-
-  Widget _buildAvatarCircle() {
-    return Container(
-      width: 130, height: 130,
-      decoration: BoxDecoration(
-        color: const Color(0xFFD9D9D9), shape: BoxShape.circle,
-        border: Border.all(color: Colors.black, width: 1),
-        boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(4, 4), blurRadius: 4)],
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.black,
+        minimumSize: const Size(double.infinity, 55),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
-      child: const Icon(Icons.person, size: 80, color: Colors.white),
+      child: const Text("HOÀN TẤT ĐĂNG KÝ", style: TextStyle(color: Colors.white, fontSize: 16)),
     );
   }
 }
