@@ -4,6 +4,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../models/driver_registration_model.dart';
 
 import '../../../../core/constants/api_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 abstract class DriverRemoteDataSource {
@@ -17,12 +18,18 @@ class DriverRemoteDataSourceImpl implements DriverRemoteDataSource {
 
   @override
   Future<String> registerDriver(DriverRegistrationModel model) async {
+    // 1. Lấy token thật từ máy
+    final prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('access_token');
+
+    print("📡 Đang gửi request tới: ${ApiConstants.registerDriver}");
+    print("🔑 Token đang dùng: $token");
     final response = await client.post(
       Uri.parse(ApiConstants.registerDriver),
       headers: {
         'Content-Type': 'application/json',
         // Token logic should be handled by an Interceptor or passed here
-        'Authorization': 'Bearer YOUR_TOKEN_HERE',
+        'Authorization': 'Bearer $token',
       },
       body: json.encode(model.toJson()),
     );

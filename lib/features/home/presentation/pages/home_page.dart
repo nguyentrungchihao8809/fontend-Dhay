@@ -36,7 +36,7 @@ class HomePage extends StatelessWidget {
                           // Chỉ bấm vào vùng "Hi, BauBau" và Mũi tên mới nhảy trang nè
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const DriverRegistrationScreen()),
+                            MaterialPageRoute(builder: (context) => const RegisterDriverPage()),
                           );
                         },
                         child: state is ProfileLoadSuccess

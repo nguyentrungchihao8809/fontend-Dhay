@@ -8,8 +8,10 @@ class RegisterDriverBloc extends Bloc<RegisterDriverEvent, RegisterDriverState> 
 
   RegisterDriverBloc({required this.registerDriverUsecase}) : super(RegisterDriverInitial()) {
     on<OnRegisterSubmit>((event, emit) async {
+      print("🚀 Bloc nhận được sự kiện: ${event.registration.vehiclePlate}");
       emit(RegisterDriverLoading());
 
+      try {
       final result = await registerDriverUsecase(event.registration);
 
       result.fold(
@@ -19,6 +21,10 @@ class RegisterDriverBloc extends Bloc<RegisterDriverEvent, RegisterDriverState> 
             message: "Đăng ký trở thành tài xế thành công! Vui lòng chờ phê duyệt."
         )),
       );
+      } catch (e) {
+        print("🚨 Lỗi tại Bloc: $e");
+        emit(RegisterDriverFailure(e.toString()));
+      }
     });
   }
 }
