@@ -136,7 +136,7 @@ class MyApp extends StatelessWidget {
         ),
         // LOGIC ĐIỀU HƯỚNG:
         // Nếu là Driver thì vào thẳng Home Driver, ngược lại vào Intro
-        initialRoute: isDriver ? '/home_driver' : '/intro',
+        initialRoute: '/intro',
 
         routes: {
           '/intro': (context) => const IntroPage(),
@@ -144,7 +144,7 @@ class MyApp extends StatelessWidget {
           '/home': (context) => const HomePage(),
           '/intro1': (context) => const Intro1Page(),
           '/home_driver': (context) => const HomeDriverPage(),
-          '/register_driver': (context) => const RegisterDriverPage(),
+          '/register_driver': (context) => const DriverRegisterPage(),
           '/create_trip': (context) => const CreateTripPage(),
         },
       ),

@@ -8,7 +8,6 @@ import '../widgets/special_offers_section.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/presentation/bloc/profile_bloc.dart';
 import '../../../auth/presentation/bloc/profile_state.dart';
-// Nhớ import file này để nó biết đường mà bay sang nha cưng
 import '../../../register_driver/presentation/pages/register_driver_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -26,17 +25,14 @@ class HomePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- ĐÂY RỒI! VÙNG BẤM CHUẨN XÁC DÀNH CHO CƯNG IU ---
-                  // Anh bọc GestureDetector sát sàn sạt cái HomeHeader thôi nhé
                   BlocBuilder<ProfileBloc, ProfileState>(
                     builder: (context, state) {
                       return GestureDetector(
-                        behavior: HitTestBehavior.opaque, // Thêm cái này để bấm vào khoảng trắng trong box vẫn ăn nha
+                        behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          // Chỉ bấm vào vùng "Hi, BauBau" và Mũi tên mới nhảy trang nè
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegisterDriverPage()),
+                            MaterialPageRoute(builder: (context) => const DriverRegisterPage()),
                           );
                         },
                         child: state is ProfileLoadSuccess
@@ -46,7 +42,6 @@ class HomePage extends StatelessWidget {
                     },
                   ),
 
-                  // Thanh tìm kiếm - Vùng này bấm vào không bị nhảy sang Driver nè
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Container(
@@ -74,8 +69,6 @@ class HomePage extends StatelessWidget {
                   _sectionHeader("Đề xuất từ Dhay", 'assets/icons/ic_filter_menu.png'),
                   _horizontalList(const RecommendationCard(), 230),
 
-                  // CÁI NÀY LÀ CÁI MÀU NÂU NÈ - Anh để nó nằm riêng, không bọc GestureDetector
-                  // Nên giờ cưng bấm vào đây nó sẽ im re, không nhảy sang trang Driver nữa đâu!
                   const SpecialOffersSection(),
 
                   _sectionHeader("Chuyến đi gần đây", 'assets/icons/ic_filter_menu.png'),
@@ -98,7 +91,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Mấy cái này anh giữ nguyên cho cưng nè
   Widget _sectionHeader(String title, String? iconPath) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),

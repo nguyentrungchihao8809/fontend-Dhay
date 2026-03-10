@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ghepxenew/features/auth/presentation/pages/driver_register_page.dart'; // Đã khớp tên file mới
+import 'package:ghepxenew/features/auth/presentation/pages/register_page.dart'; // Đã khớp tên file mới
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
@@ -197,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const DriverRegisterPage()),
+                          builder: (context) => const RegisterPage()),
                     );
                   },
                   style: TextButton.styleFrom(
