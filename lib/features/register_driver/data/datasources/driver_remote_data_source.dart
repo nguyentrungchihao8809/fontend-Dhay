@@ -1,14 +1,16 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http; // Hoặc sử dụng Dio tùy dự án
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/driver_registration_model.dart';
 
-import '../../../../core/constants/api_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-
 abstract class DriverRemoteDataSource {
+  /// Đăng ký trở thành tài xế
   Future<String> registerDriver(DriverRegistrationModel model);
+
+  /// Kiểm tra xem user hiện tại đã là tài xế chưa
+  Future<bool> checkRegistration();
 }
 
 class DriverRemoteDataSourceImpl implements DriverRemoteDataSource {
@@ -18,28 +20,49 @@ class DriverRemoteDataSourceImpl implements DriverRemoteDataSource {
 
   @override
   Future<String> registerDriver(DriverRegistrationModel model) async {
-    // 1. Lấy token thật từ máy
-    final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('access_token');
+    final String? token = await _getToken();
 
-    print("📡 Đang gửi request tới: ${ApiConstants.registerDriver}");
-    print("🔑 Token đang dùng: $token");
     final response = await client.post(
       Uri.parse(ApiConstants.registerDriver),
       headers: {
         'Content-Type': 'application/json',
-        // Token logic should be handled by an Interceptor or passed here
         'Authorization': 'Bearer $token',
       },
       body: json.encode(model.toJson()),
     );
 
     if (response.statusCode == 200) {
-      // API return idVehicle in plain text or wrapped in JSON
-      // As per requirement: "cần trả về idVehicle để FE lưu tạm"
+      // Trả về idVehicle (plain text hoặc json tùy BE)
       return response.body;
     } else {
-      throw ServerException();
+      throw ServerException(message: "Đăng ký thất bại. Vui lòng thử lại.");
     }
+  }
+
+  @override
+  Future<bool> checkRegistration() async {
+    final String? token = await _getToken();
+
+    final response = await client.get(
+      Uri.parse("${ApiConstants.drivers}/check-registration"),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      // Dựa trên response BE: {"isRegistered": true, "message": "..."}
+      return data['isRegistered'] ?? false;
+    } else {
+      throw ServerException(message: "Không thể kiểm tra trạng thái tài xế.");
+    }
+  }
+
+  /// Helper lấy token từ máy
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('access_token');
   }
 }

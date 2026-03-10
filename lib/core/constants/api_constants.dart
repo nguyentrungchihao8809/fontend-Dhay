@@ -23,4 +23,8 @@ class ApiConstants {
 
   static const String driversBase = "$baseUrl/drivers";
   static const String registerDriver = "$driversBase/register";
+
+  // Thêm vào class ApiConstants
+  static const String drivers = "$baseUrl/drivers";
+  static const String checkRegistration = "$drivers/check-registration";
 }

@@ -16,3 +16,5 @@ class OnRegisterSubmit extends RegisterDriverEvent {
   @override
   List<Object> get props => [registration];
 }
+
+class OnCheckDriverStatus extends RegisterDriverEvent {}

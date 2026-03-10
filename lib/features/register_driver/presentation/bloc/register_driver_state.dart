@@ -11,6 +11,16 @@ class RegisterDriverInitial extends RegisterDriverState {}
 
 class RegisterDriverLoading extends RegisterDriverState {}
 
+/// TRẠNG THÁI MỚI: Trả về kết quả kiểm tra tài xế (True/False)
+class DriverStatusResult extends RegisterDriverState {
+  final bool isRegistered;
+
+  const DriverStatusResult(this.isRegistered);
+
+  @override
+  List<Object> get props => [isRegistered];
+}
+
 class RegisterDriverSuccess extends RegisterDriverState {
   final String vehicleId;
   final String message;

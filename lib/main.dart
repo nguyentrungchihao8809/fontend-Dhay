@@ -1,5 +1,3 @@
-// lib/main.dart
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,6 +33,7 @@ import 'features/create_trip/domain/usecase/search_location_usecase.dart';
 import 'features/register_driver/data/datasources/driver_remote_data_source.dart';
 import 'features/register_driver/data/repositories/driver_repository_impl.dart';
 import 'features/register_driver/domain/usecases/register_driver_usecase.dart';
+import 'features/register_driver/domain/usecases/check_driver_status_usecase.dart'; // THÊM DÒNG NÀY
 import 'features/register_driver/presentation/bloc/register_driver_bloc.dart';
 import 'features/register_driver/data/datasources/driver_local_data_source.dart';
 
@@ -66,18 +65,21 @@ void main() async {
 
   final driverRepository = DriverRepositoryImpl(
     remoteDataSource: driverRemoteDataSource,
-    localDataSource: driverLocalDataSource, // Đã thêm local vào repo
+    localDataSource: driverLocalDataSource,
   );
-  final registerDriverUseCase = RegisterDriverUsecase(driverRepository);
 
-  // --- KIỂM TRA TRẠNG THÁI DRIVER ---
-  // Nếu key CACHED_VEHICLE_ID tồn tại thì coi như đã là Driver
+  // Khởi tạo các UseCases cho Driver
+  final registerDriverUseCase = RegisterDriverUsecase(driverRepository);
+  final checkDriverStatusUseCase = CheckDriverStatusUseCase(driverRepository); // THÊM DÒNG NÀY
+
+  // --- KIỂM TRA TRẠNG THÁI DRIVER (Dành cho việc điều hướng lúc khởi động app) ---
   final bool isDriver = driverLocalDataSource.isDriver();
 
   runApp(MyApp(
     searchLocationUseCase: searchLocationUseCase,
     authRemoteDataSource: authRemoteDataSource,
     registerDriverUseCase: registerDriverUseCase,
+    checkDriverStatusUseCase: checkDriverStatusUseCase, // TRUYỀN VÀO MYAPP
     isDriver: isDriver,
   ));
 }
@@ -97,6 +99,7 @@ class MyApp extends StatelessWidget {
   final SearchLocationUseCase searchLocationUseCase;
   final AuthRemoteDataSource authRemoteDataSource;
   final RegisterDriverUsecase registerDriverUseCase;
+  final CheckDriverStatusUseCase checkDriverStatusUseCase; // THÊM DÒNG NÀY
   final bool isDriver;
 
   const MyApp({
@@ -104,6 +107,7 @@ class MyApp extends StatelessWidget {
     required this.searchLocationUseCase,
     required this.authRemoteDataSource,
     required this.registerDriverUseCase,
+    required this.checkDriverStatusUseCase, // REQUIRED TRONG CONSTRUCTOR
     required this.isDriver,
   });
 
@@ -121,7 +125,10 @@ class MyApp extends StatelessWidget {
           create: (context) => ProfileBloc(authRemoteDataSource: authRemoteDataSource),
         ),
         BlocProvider(
-          create: (context) => RegisterDriverBloc(registerDriverUsecase: registerDriverUseCase),
+          create: (context) => RegisterDriverBloc(
+            registerDriverUsecase: registerDriverUseCase,
+            checkDriverStatusUseCase: checkDriverStatusUseCase, // TRUYỀN VÀO BLOC
+          ),
         ),
       ],
       child: MaterialApp(
@@ -134,8 +141,6 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: AppColors.background,
           fontFamily: 'Poppins',
         ),
-        // LOGIC ĐIỀU HƯỚNG:
-        // Nếu là Driver thì vào thẳng Home Driver, ngược lại vào Intro
         initialRoute: '/intro',
 
         routes: {
