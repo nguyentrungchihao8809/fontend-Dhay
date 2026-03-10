@@ -1,235 +1,270 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class RegisterDriverPage extends StatefulWidget {
-  const RegisterDriverPage({super.key});
+class DriverRegisterPage extends StatefulWidget {
+  const DriverRegisterPage({super.key});
 
   @override
-  State<RegisterDriverPage> createState() => _RegisterDriverPageState();
+  State<DriverRegisterPage> createState() => _DriverRegisterPageState();
 }
 
-class _RegisterDriverPageState extends State<RegisterDriverPage> {
-  // Controllers cho các trường nhập liệu
-  final TextEditingController _licenseController = TextEditingController();
-  final TextEditingController _plateController = TextEditingController();
-  final TextEditingController _brandController = TextEditingController();
-  final TextEditingController _typeController = TextEditingController();
-  final TextEditingController _modelController = TextEditingController();
-  final TextEditingController _seatsController = TextEditingController();
+class _DriverRegisterPageState extends State<DriverRegisterPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _licenseNumberController = TextEditingController();
+  final _vehiclePlateController = TextEditingController();
+  final _vehicleModelController = TextEditingController();
+  final _capacityController = TextEditingController();
+
+  String? _selectedBrand;
+  String? _selectedType = "MOTORBIKE";
+
+  final List<String> _brands = ["Honda", "Yamaha", "Suzuki", "VinFast", "Toyota", "Khác"];
+  final List<Map<String, String>> _types = [
+    {"value": "MOTORBIKE", "label": "Xe máy"},
+    {"value": "CAR_4_SEATER", "label": "Ô tô 4 chỗ"},
+    {"value": "CAR_7_SEATER", "label": "Ô tô 7 chỗ"},
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // Kích thước chuẩn từ CSS (412x917)
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double scale = screenWidth / 412;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: 917 * scale,
-          width: screenWidth,
-          child: Stack(
+      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. ChatGPT Image (Background top left)
-              Positioned(
-                left: -45 * scale,
-                top: 0,
-                child: Image.network(
-                  'https://via.placeholder.com/196x91', // Thay bằng asset của bạn
-                  width: 196 * scale,
-                  height: 91 * scale,
-                ),
-              ),
-
-              // 2. Tiêu đề: Đăng ký trở thành Driver
-              Positioned(
-                left: 53 * scale,
-                top: 91 * scale,
-                child: _buildText("Đăng ký trở thành Driver", 24, FontWeight.w800,
-                    width: 317 * scale, height: 65 * scale),
-              ),
-
-              // 3. Ellipse 64 (Ảnh đại diện/Logo tròn)
-              Positioned(
-                left: 137 * scale,
-                top: 171 * scale,
-                child: Container(
-                  width: 134 * scale,
-                  height: 126 * scale,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD9D9D9),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x40000000), offset: Offset(5, 5), blurRadius: 4),
-                    ],
+              const SizedBox(height: 20),
+              _buildLogo(),
+              const SizedBox(height: 30),
+              Center(
+                child: Text(
+                  "Đăng ký trở thành Driver",
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
                   ),
                 ),
               ),
-
-              // 4. Rectangle 517 (Thẻ nền chính cho Form)
-              Positioned(
-                left: 32 * scale,
-                top: 238 * scale,
-                child: Container(
-                  width: 344 * scale,
-                  height: 593 * scale,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEFCFF),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0xFFD9D9D9), blurRadius: 10, spreadRadius: 4, offset: Offset(0, 4)),
-                    ],
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
+                  child: _buildFormCard(),
                 ),
-              ),
-
-              // 5. Rectangle 170 (Khung thông báo chào mừng)
-              Positioned(
-                left: 53 * scale,
-                top: 313 * scale,
-                child: Container(
-                  width: 305 * scale,
-                  height: 162 * scale,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.black),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x40000000), offset: Offset(0, 4), blurRadius: 4),
-                    ],
-                  ),
-                ),
-              ),
-
-              // 6. Nội dung text trong khung chào mừng
-              Positioned(
-                left: 64 * scale,
-                top: 322 * scale,
-                child: _buildText("Chào mừng bạn đến với DHAY với vai trò tài xế", 16,
-                    FontWeight.w500, width: 280 * scale, height: 40 * scale, textAlign: TextAlign.center),
-              ),
-              Positioned(
-                left: 68 * scale,
-                top: 394 * scale,
-                child: _buildText(
-                    "Vui lòng đảm bảo thông tin phương tiện chính xác, tuân thủ luật giao thông...",
-                    14, FontWeight.w300, width: 292 * scale, height: 40 * scale),
-              ),
-
-              // 7. CÁC TRƯỜNG NHẬP LIỆU (Input Fields)
-              _buildInputField(scale, "Số bằng lái", 488, _licenseController),
-              _buildInputField(scale, "Biển số xe", 527, _plateController),
-              _buildInputField(scale, "Hãng xe", 567, _brandController),
-              _buildInputField(scale, "Loại xe", 607, _typeController),
-              _buildInputField(scale, "Dòng xe", 647, _modelController),
-              _buildInputField(scale, "Số ghế trống", 686, _seatsController),
-
-              // 8. Nút Đăng ký (Rounded rectangle)
-              Positioned(
-                left: 84 * scale,
-                top: 765 * scale,
-                child: InkWell(
-                  onTap: () => print("Đăng ký click"),
-                  child: Container(
-                    width: 243 * scale,
-                    height: 45 * scale,
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [
-                        BoxShadow(color: Color(0x40000000), offset: Offset(0, 8), blurRadius: 4),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      "Đăng ký",
-                      style: GoogleFonts.poppins(
-                        fontSize: 19 * scale,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // 9. From DHAY (Footer)
-              Positioned(
-                left: 163 * scale,
-                top: 851 * scale,
-                child: _buildText("From DHAY", 16, FontWeight.w500, width: 120 * scale, height: 52 * scale),
               ),
             ],
           ),
         ),
       ),
+      // Đưa Footer xuống đây để nó luôn cố định ở đáy màn hình
+      bottomNavigationBar: Container(
+        height: 60,
+        alignment: Alignment.center,
+        child: _buildFooter(),
+      ),
     );
   }
 
-  // Widget con để build Text chuẩn CSS
-  Widget _buildText(String text, double size, FontWeight weight,
-      {double? width, double? height, TextAlign textAlign = TextAlign.left}) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: Text(
-        text,
-        textAlign: textAlign,
-        style: GoogleFonts.poppins(
-          fontSize: size,
-          fontWeight: weight,
-          color: Colors.black,
-          letterSpacing: 0.01,
+  Widget _buildLogo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "D",
+              style: GoogleFonts.poppins(
+                fontSize: 55,
+                fontWeight: FontWeight.w900,
+                height: 1.0,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4285F4),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 2.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          "DHAY",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            height: 0.8,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormCard() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 25, 20, 25),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEFCFF),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0xFFD9D9D9),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.black.withOpacity(0.1)),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    "Chào mừng bạn đến với DHAY với vai trò tài xế",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Vui lòng đảm bảo thông tin chính xác, tuân thủ luật giao thông và luôn giữ thái độ thân thiện với hành khách.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w300, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 25),
+            _underlineInput("Số bằng lái", _licenseNumberController),
+            _underlineInput("Biển số xe", _vehiclePlateController),
+            _underlineDropdown("Hãng xe", _brands, (v) => setState(() => _selectedBrand = v)),
+            _underlineDropdown("Loại xe", _types.map((e) => e['label']!).toList(), (label) {
+              setState(() {
+                _selectedType = _types.firstWhere((e) => e['label'] == label)['value'];
+              });
+            }),
+            _underlineInput("Dòng xe", _vehicleModelController),
+            _underlineInput("Số ghế trống", _capacityController, isNumber: true),
+            const SizedBox(height: 30),
+            _buildSubmitButton(),
+          ],
         ),
       ),
     );
   }
 
-  // Widget con để build các Input Field kèm Line bên dưới
-  Widget _buildInputField(double scale, String hint, double top, TextEditingController controller) {
-    return Stack(
+  Widget _underlineInput(String hint, TextEditingController ctrl, {bool isNumber = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        children: [
+          TextFormField(
+            controller: ctrl,
+            keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+            style: GoogleFonts.poppins(fontSize: 14),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.black.withOpacity(0.3)),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              border: InputBorder.none,
+            ),
+          ),
+          const Divider(height: 1, color: Colors.black12),
+        ],
+      ),
+    );
+  }
+
+  Widget _underlineDropdown(String hint, List<String> items, Function(String?) onChanged) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        children: [
+          DropdownButtonFormField<String>(
+            isExpanded: true,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.black.withOpacity(0.3)),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              border: InputBorder.none,
+            ),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.black26),
+            items: items.map((e) => DropdownMenuItem(
+                value: e,
+                child: Text(e, style: GoogleFonts.poppins(fontSize: 14))
+            )).toList(),
+            onChanged: onChanged,
+          ),
+          const Divider(height: 1, color: Colors.black12),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: () {
+        if (_formKey.currentState!.validate()) {
+          // Logic submit
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.black,
+        minimumSize: const Size(220, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        elevation: 6,
+      ),
+      child: Text(
+          "Đăng ký",
+          style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold
+          )
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Positioned(
-          left: 60 * scale,
-          top: top * scale,
-          child: SizedBox(
-            width: 292 * scale,
-            height: 40 * scale,
-            child: TextField(
-              controller: controller,
-              style: GoogleFonts.poppins(fontSize: 15 * scale, fontWeight: FontWeight.w300),
-              decoration: InputDecoration(
-                hintText: hint,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          ),
+        Text(
+            "From ",
+            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500)
         ),
-        // Line bên dưới TextField (CSS Line 13-19)
-        Positioned(
-          left: 59 * scale,
-          top: (top + 38) * scale,
-          child: Container(
-            width: 293 * scale,
-            height: 1,
-            color: Colors.black.withOpacity(0.42),
-          ),
-        ),
-        // Icon bên phải (CSS image 138-141)
-        Positioned(
-          left: 327 * scale,
-          top: (top + 4) * scale,
-          child: Container(
-            width: 23 * scale,
-            height: 23 * scale,
-            decoration: const BoxDecoration(
-              color: Colors.grey, // Thay bằng Image.asset
-              shape: BoxShape.circle,
-            ),
-          ),
+        Text(
+            "DHAY",
+            style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF4285F4)
+            )
         ),
       ],
     );
