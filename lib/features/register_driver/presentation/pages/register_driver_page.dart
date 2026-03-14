@@ -63,7 +63,6 @@ class _DriverRegisterPageState extends State<DriverRegisterPage> {
           ),
         ),
       ),
-      // Đưa Footer xuống đây để nó luôn cố định ở đáy màn hình
       bottomNavigationBar: Container(
         height: 60,
         alignment: Alignment.center,
@@ -270,3 +269,4 @@ class _DriverRegisterPageState extends State<DriverRegisterPage> {
     );
   }
 }
+//...
