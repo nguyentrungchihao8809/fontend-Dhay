@@ -12,6 +12,9 @@ class AppColors {
   static const Color backgroundHeader = Color(0xFFE0E0E0);
   static const Color inputBackground = Color(0xFFE0E0E0);
 
+  // Màu mới cho giao diện Payment
+  static const Color paymentBackground = Color(0xFFFDFDFD);
+
   // --- NHÓM 2: CHỮ (TEXT COLORS) ---
   static const Color textPrimary = Color(0xFF000000);
   static const Color textMain = Color(0xFF3B3939);
@@ -39,6 +42,7 @@ class AppColors {
   static const Color darkPrimary = Color(0xFF101012);
   static const Color primaryBlack = Color(0xFF1A1A1A);
   static const Color logoutBtnBackground = Color(0xFF0F0E0E);
+  static const Color buttonBlack = Color(0xFF101012); // Màu nút thanh toán
 
   // --- NHÓM 5: ĐƯỜNG KẺ & ĐỔ BÓNG (LINES & SHADOWS) ---
   static const Color divider = Color(0xFFD9D9D9);
@@ -51,6 +55,10 @@ class AppColors {
   static const Color lightShadow = Color(0x0D000000);
   static const Color recentItemShadow = Color(0xFFD9D9D9);
   static const Color shadowGrey = Color(0xFF9E9E9E);
+
+  // Shadow mới cho AppBar và Card Payment
+  static const Color appBarShadow = Color(0x1A000000);
+  static const Color paymentCardShadow = Color(0x0D000000);
 
   // --- NHÓM 6: BỔ TRỢ (OTHERS) ---
   static const Color starRating = Color(0xFFFFBF00);
