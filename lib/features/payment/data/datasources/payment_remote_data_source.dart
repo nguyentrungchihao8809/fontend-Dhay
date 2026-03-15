@@ -14,36 +14,35 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
   @override
   Future<List<PaymentMethodModel>> getPaymentMethods() async {
     try {
-      // Demo dữ liệu đầy đủ 5 phương thức theo Ảnh 3
       return [
         const PaymentMethodModel(
             id: 'cash_1',
             name: 'Thanh toán tiền',
-            icon: '',
+            icon: 'assets/icons/money.png', // Đã thay money.png
             type: 'CASH'
         ),
         const PaymentMethodModel(
             id: 'momo_1',
             name: 'Thanh toán MoMo',
-            icon: 'assets/images/momo.png',
+            icon: 'assets/icons/momo.png',
             type: 'WALLET'
         ),
         const PaymentMethodModel(
             id: 'zalopay_1',
             name: 'Thanh toán ZaloPay',
-            icon: 'assets/images/zalopay.png',
+            icon: 'assets/icons/ZaloPay.png', // Viết hoa Z P theo list của em
             type: 'WALLET'
         ),
         const PaymentMethodModel(
             id: 'vnpay_1',
             name: 'Thanh toán VnPay',
-            icon: 'assets/images/vnpay.png',
+            icon: 'assets/icons/VNpay.png', // Viết hoa VN theo list của em
             type: 'WALLET'
         ),
         const PaymentMethodModel(
             id: 'vietqr_1',
             name: 'Thanh toán VietQR',
-            icon: 'assets/images/vietqr.png',
+            icon: 'assets/icons/VietQR.png', // Viết hoa V QR theo list của em
             type: 'WALLET'
         ),
       ];
@@ -54,7 +53,6 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
 
   @override
   Future<bool> processPayment(Map<String, dynamic> data) async {
-    // Giả lập xử lý thanh toán mất 1 giây
     await Future.delayed(const Duration(seconds: 1));
     return true;
   }

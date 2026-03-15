@@ -24,21 +24,21 @@ class PaymentMethodItem extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.white, // Luôn là màu trắng tinh theo ý em
           borderRadius: BorderRadius.circular(18),
-          // HIỆU ỨNG VIỀN KHI CHỌN
           border: Border.all(
-            color: isSelected ? AppColors.black : Colors.transparent,
-            width: 2,
+            // Nếu chọn thì viền đen đậm, không chọn thì viền xám rất nhạt
+            color: isSelected ? AppColors.black : const Color(0xFFF0F0F0),
+            width: isSelected ? 2 : 1,
           ),
-          // HIỆU ỨNG ĐỔ BÓNG TỪNG ITEM
+          // ĐỔ BÓNG RIÊNG CHO TỪNG BOX NHỎ
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? Colors.black.withOpacity(0.12) // Bóng đậm hơn khi chọn
-                  : Colors.black.withOpacity(0.04), // Bóng rất nhẹ khi chưa chọn
-              blurRadius: isSelected ? 15 : 8,
-              offset: isSelected ? const Offset(0, 6) : const Offset(0, 4),
+                  ? Colors.black.withOpacity(0.12) // Bóng đậm hơn khi được chọn
+                  : Colors.black.withOpacity(0.05), // Bóng nhẹ khi chưa chọn
+              blurRadius: isSelected ? 12 : 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -48,27 +48,27 @@ class PaymentMethodItem extends StatelessWidget {
               child: Text(
                 method.name,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: AppColors.textPrimary,
                 ),
               ),
             ),
-            _buildMethodIcon(method.name),
+            // Hiển thị ảnh logo
+            Image.asset(
+              method.icon,
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+              // Chỉnh filterQuality để ảnh bớt mờ khi scale
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.payment, size: 28, color: Colors.grey);
+              },
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildMethodIcon(String name) {
-    final n = name.toLowerCase();
-    // Logic hiển thị Icon (như đã hướng dẫn ở các bước trước)
-    if (n.contains('tiền')) return const Icon(Icons.payments_rounded, color: Colors.green, size: 28);
-    if (n.contains('momo')) return const Icon(Icons.wallet, color: Colors.pink, size: 28);
-    if (n.contains('zalo')) return const Icon(Icons.account_balance_wallet, color: Colors.blue, size: 28);
-    if (n.contains('vnpay')) return const Icon(Icons.qr_code_scanner, color: Colors.red, size: 28);
-    if (n.contains('vietqr')) return const Icon(Icons.qr_code, color: Colors.black, size: 28);
-    return const Icon(Icons.payment);
   }
 }
