@@ -1,3 +1,5 @@
+// lib/features/trip_invoice/presentation/pages/trip_invoice_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/invoice_bloc.dart';
@@ -15,7 +17,6 @@ class _TripInvoicePageState extends State<TripInvoicePage> {
   @override
   void initState() {
     super.initState();
-    // Gọi event lấy dữ liệu (Bỏ const ở đây để tránh lỗi constructor)
     context.read<InvoiceBloc>().add(FetchInvoiceDetails('trip_123'));
   }
 
@@ -32,25 +33,25 @@ class _TripInvoicePageState extends State<TripInvoicePage> {
           } else if (state is InvoiceLoaded) {
             final invoice = state.invoice;
             return SafeArea(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 30),
-                    _buildGreetingSection(invoice),
-                    const SizedBox(height: 20),
-                    _buildPricingSection(invoice),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 21),
-                      child: Divider(color: Colors.black, thickness: 1),
-                    ),
-                    _buildDriverSection(invoice),
-                    _buildRouteSection(invoice),
-                    const SizedBox(height: 30),
-                  ],
-                ),
+              child: Column( // ✅ Bỏ SingleChildScrollView, dùng Column thẳng
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 16),
+                  _buildGreetingSection(invoice),
+                  const SizedBox(height: 16),
+                  _buildPricingSection(invoice),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 21),
+                    child: Divider(color: Colors.black, thickness: 1),
+                  ),
+                  _buildDriverSection(invoice),
+                  const SizedBox(height: 12),
+                  Expanded( // ✅ Expanded để phần map + route chiếm hết không gian còn lại
+                    child: _buildRouteWithMapSection(invoice),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
             );
           }
@@ -107,20 +108,20 @@ class _TripInvoicePageState extends State<TripInvoicePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(
-            width: 160,
+            width: 170,
             child: Text(
               'Cảm ơn bạn đã tin tưởng và sử dụng DHAY',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, height: 1.4),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, height: 1.3),
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(invoice.date, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-              Text(invoice.time, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(invoice.date, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF333333))),
+              Text(invoice.time, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF333333))),
               Text(
                 '${invoice.duration} | ${invoice.distance}',
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF333333)),
               ),
             ],
           )
@@ -136,39 +137,49 @@ class _TripInvoicePageState extends State<TripInvoicePage> {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Chúng tôi hy vọng bạn sẽ có một chuyến ghép xe tuyệt vời hôm nay với DHAY.',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Color(0xFF333333), height: 1.4),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Tổng', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+              const Text('Tổng', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+              const SizedBox(width: 8),
+              Image.asset('assets/icons/bill.png', width: 24, height: 24),
+              const Spacer(),
               Text('${formatCurrency(invoice.subTotal)} VNĐ',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
             ],
           ),
-          const SizedBox(height: 15),
-          _priceRow('DHAY voucher', '-${formatCurrency(invoice.voucherDiscount)} VNĐ'),
+          const SizedBox(height: 10),
+          _priceRow('DHAY voucher', '-${formatCurrency(invoice.voucherDiscount)} VNĐ', isDiscount: true),
           _priceRow('DHAY cước phí', '${formatCurrency(invoice.totalFare)} VNĐ'),
+          const SizedBox(height: 10),
         ],
       ),
     );
   }
 
-  Widget _priceRow(String label, String value) {
+  Widget _priceRow(String label, String value, {bool isDiscount = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDiscount ? const Color(0xFFE53935) : const Color(0xFF333333),
+            ),
+          ),
         ],
       ),
     );
@@ -176,41 +187,41 @@ class _TripInvoicePageState extends State<TripInvoicePage> {
 
   Widget _buildDriverSection(dynamic invoice) {
     return Padding(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Chi tiết', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 15),
+          const Text('Chi tiết', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
           Row(
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 65,
+                height: 65,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                child: const Icon(Icons.person, size: 40, color: Colors.grey), // ✅ Fixed: moved child out of BoxDecoration
+                child: const Icon(Icons.person, size: 45, color: Colors.grey),
               ),
-              const SizedBox(width: 15),
+              const SizedBox(width: 18),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Text(invoice.driverName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                        const SizedBox(width: 8),
-                        Text(invoice.driverRating.toString(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                        const Icon(Icons.star, color: Color(0xFFFFC907), size: 16),
+                        Text(invoice.driverName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                        const SizedBox(width: 10),
+                        Text(invoice.driverRating.toString(), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                        const Icon(Icons.star, color: Color(0xFFFFC907), size: 18),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(invoice.vehiclePlate, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 6),
+                    Text(invoice.vehiclePlate, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF4F4F4F))),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ],
@@ -218,39 +229,61 @@ class _TripInvoicePageState extends State<TripInvoicePage> {
     );
   }
 
-  Widget _buildRouteSection(dynamic invoice) {
+  Widget _buildRouteWithMapSection(dynamic invoice) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
-              children: [
-                const Icon(Icons.radio_button_checked, size: 20, color: Colors.black),
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    color: const Color(0xFFB9B9B9),
-                  ),
-                ),
-                const Icon(Icons.location_on, size: 20, color: Colors.black),
-              ],
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 6,
+            child: IntrinsicHeight(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _locationDetail(invoice.pickupTime, invoice.pickupLocation, invoice.pickupAddress),
-                  const SizedBox(height: 40),
-                  _locationDetail(invoice.dropoffTime, invoice.dropoffLocation, invoice.dropoffAddress),
+                  Column(
+                    children: [
+                      const Icon(Icons.radio_button_checked, size: 20, color: Colors.black),
+                      Expanded(
+                        child: Container(width: 2, color: const Color(0xFFB9B9B9)),
+                      ),
+                      const Icon(Icons.location_on, size: 20, color: Colors.black),
+                    ],
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _locationDetail(invoice.pickupTime, invoice.pickupLocation, invoice.pickupAddress),
+                        _locationDetail(invoice.dropoffTime, invoice.dropoffLocation, invoice.dropoffAddress),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            flex: 4,
+            child: Container(
+              // ✅ Bỏ height cố định, để tự fill theo Expanded cha
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Center(
+                child: Text(
+                  'Map View\nInsert map here',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.blueGrey),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -259,13 +292,13 @@ class _TripInvoicePageState extends State<TripInvoicePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(time, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
-        const SizedBox(height: 2),
-        Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 2),
+        Text(time, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4F4F4F))),
+        const SizedBox(height: 3),
+        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black)),
+        const SizedBox(height: 3),
         Text(
           address,
-          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: Color(0xFF333333)),
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFF4F4F4F)),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
