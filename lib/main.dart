@@ -20,13 +20,13 @@ import 'package:ghepxenew/features/home/presentation/pages/home_page.dart';
 import 'package:ghepxenew/features/home_driver/presentation/pages/home_driver_page.dart';
 import 'package:ghepxenew/features/auth/presentation/pages/intro1_page.dart';
 import 'package:ghepxenew/features/payment/presentation/pages/payment_page.dart';
+// THÊM: Trang Hóa Đơn
+import 'package:ghepxenew/features/trip_invoice/presentation/pages/trip_invoice_page.dart';
 
 // 3. Logic & Data (Auth)
 import 'package:ghepxenew/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:ghepxenew/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ghepxenew/features/auth/presentation/bloc/profile_bloc.dart';
-// Lưu ý: Nếu dòng auth_event.dart dưới đây báo lỗi đỏ, hãy xóa nó đi.
-// import 'package:ghepxenew/features/auth/presentation/bloc/auth_event.dart';
 
 // 4. Logic & Data (Create Trip)
 import 'package:ghepxenew/features/create_trip/data/datasources/create_trip_remote_datasource.dart';
@@ -48,6 +48,12 @@ import 'package:ghepxenew/features/payment/domain/usecases/get_payment_methods.d
 import 'package:ghepxenew/features/payment/domain/usecases/process_payment.dart';
 import 'package:ghepxenew/features/payment/presentation/bloc/payment_bloc.dart';
 
+// 7. Logic & Data (Trip Invoice) - MỚI TÍCH HỢP
+import 'package:ghepxenew/features/trip_invoice/data/datasources/invoice_remote_data_source.dart';
+import 'package:ghepxenew/features/trip_invoice/data/repositories/invoice_repository_impl.dart';
+import 'package:ghepxenew/features/trip_invoice/domain/usecases/get_invoice_details.dart';
+import 'package:ghepxenew/features/trip_invoice/presentation/bloc/invoice_bloc.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -56,37 +62,41 @@ void main() async {
 
   await _initializeFirebase();
 
-  // --- Khởi tạo chung ---
+  // --- Khởi tạo chung (HttpClient & Dio) ---
   final httpClient = http.Client();
   final dio = Dio();
 
-  // --- Khởi tạo Auth ---
+  // --- 1. Khởi tạo Auth ---
   final authRemoteDataSource = AuthRemoteDataSourceImpl(client: httpClient);
 
-  // --- Khởi tạo Create Trip ---
+  // --- 2. Khởi tạo Create Trip ---
   final createTripRemoteDataSource = CreateTripRemoteDataSourceImpl(dio: dio);
   final createTripRepository = CreateTripRepositoryImpl(
     remoteDataSource: createTripRemoteDataSource,
   );
   final searchLocationUseCase = SearchLocationUseCase(createTripRepository);
 
-  // --- Khởi tạo Register Driver & Local Data ---
+  // --- 3. Khởi tạo Register Driver & Local Data ---
   final driverRemoteDataSource = DriverRemoteDataSourceImpl(client: httpClient);
   final driverLocalDataSource = DriverLocalDataSourceImpl(sharedPreferences: sharedPreferences);
-
   final driverRepository = DriverRepositoryImpl(
     remoteDataSource: driverRemoteDataSource,
     localDataSource: driverLocalDataSource,
   );
   final registerDriverUseCase = RegisterDriverUsecase(driverRepository);
 
-  // --- KHỞI TẠO PAYMENT ---
+  // --- 4. Khởi tạo Payment ---
   final paymentRemoteDataSource = PaymentRemoteDataSourceImpl(dio: dio);
   final paymentRepository = PaymentRepositoryImpl(remoteDataSource: paymentRemoteDataSource);
   final getPaymentMethodsUseCase = GetPaymentMethods(paymentRepository);
   final processPaymentUseCase = ProcessPayment(paymentRepository);
 
-  // --- KIỂM TRA TRẠNG THÁI DRIVER ---
+  // --- 5. Khởi tạo Trip Invoice (Feature mới) ---
+  final invoiceRemoteDataSource = InvoiceRemoteDataSourceImpl(dio: dio);
+  final invoiceRepository = InvoiceRepositoryImpl(remoteDataSource: invoiceRemoteDataSource);
+  final getInvoiceDetailsUseCase = GetInvoiceDetails(invoiceRepository);
+
+  // Kiểm tra trạng thái Driver từ Local Storage
   final bool isDriver = driverLocalDataSource.isDriver();
 
   runApp(MyApp(
@@ -95,6 +105,7 @@ void main() async {
     registerDriverUseCase: registerDriverUseCase,
     getPaymentMethodsUseCase: getPaymentMethodsUseCase,
     processPaymentUseCase: processPaymentUseCase,
+    getInvoiceDetailsUseCase: getInvoiceDetailsUseCase, // Truyền vào MyApp
     isDriver: isDriver,
   ));
 }
@@ -116,6 +127,7 @@ class MyApp extends StatelessWidget {
   final RegisterDriverUsecase registerDriverUseCase;
   final GetPaymentMethods getPaymentMethodsUseCase;
   final ProcessPayment processPaymentUseCase;
+  final GetInvoiceDetails getInvoiceDetailsUseCase; // UseCase hóa đơn
   final bool isDriver;
 
   const MyApp({
@@ -125,6 +137,7 @@ class MyApp extends StatelessWidget {
     required this.registerDriverUseCase,
     required this.getPaymentMethodsUseCase,
     required this.processPaymentUseCase,
+    required this.getInvoiceDetailsUseCase,
     required this.isDriver,
   });
 
@@ -136,7 +149,6 @@ class MyApp extends StatelessWidget {
           create: (context) => CreateTripBloc(searchUseCase: searchLocationUseCase),
         ),
         BlocProvider(
-          // Thêm sự kiện AppStarted để check login khi mở app
           create: (context) => AuthBloc(authRemoteDataSource: authRemoteDataSource),
         ),
         BlocProvider(
@@ -151,6 +163,10 @@ class MyApp extends StatelessWidget {
             processPayment: processPaymentUseCase,
           ),
         ),
+        // ĐĂNG KÝ INVOICE BLOC TẠI ĐÂY
+        BlocProvider(
+          create: (context) => InvoiceBloc(getInvoiceDetails: getInvoiceDetailsUseCase),
+        ),
       ],
       child: MaterialApp(
         title: 'DHAY Driver',
@@ -162,8 +178,9 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: AppColors.background,
           fontFamily: 'Poppins',
         ),
-        // Để Test trang Payment, tôi để mặc định vào /payment
-        initialRoute: '/payment',
+
+        // Đặt mặc định vào trang hóa đơn để kiểm tra (có thể đổi lại thành /payment hoặc /home)
+        initialRoute: '/trip_invoice',
 
         routes: {
           '/intro': (context) => const IntroPage(),
@@ -174,6 +191,7 @@ class MyApp extends StatelessWidget {
           '/register_driver': (context) => const DriverRegisterPage(),
           '/create_trip': (context) => const CreateTripPage(),
           '/payment': (context) => const PaymentPage(),
+          '/trip_invoice': (context) => const TripInvoicePage(), // Route hóa đơn
         },
       ),
     );
