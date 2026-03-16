@@ -6,6 +6,7 @@ import '../../domain/entity/create_trip_location_entity.dart';
 import '../../domain/entity/saved_trip_entity.dart';
 import '../../domain/usecase/search_location_usecase.dart';
 import '../../domain/entity/trip_route_entity.dart';
+import '../../../../core/constants/api_constants.dart';
 
 /// ================= ENUM =================
 enum LocationFieldType { pickup, dropoff }
@@ -162,7 +163,8 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
       // Chỉ gọi API khi đủ 2 điểm
       if (currentPickup != null && currentDropoff != null) {
         try {
-          final String token = 'pk.eyJ1IjoibWluaHF1YW4xMjMiLCJhIjoiY203eG50NjBvMGFlODJycHY3N3B4M2FyayJ9.O3pW0G6iGOfWpM514O6jMw';
+          final String token = ApiConstants.mapboxToken;
+          //String token = 'pk.eyJ1IjoibWluaHF1YW4xMjMiLCJhIjoiY203eG50NjBvMGFlODJycHY3N3B4M2FyayJ9.O3pW0G6iGOfWpM514O6jMw';
           final url = 'https://api.mapbox.com/directions/v5/mapbox/driving/'
               '${currentPickup.longitude},${currentPickup.latitude};'
               '${currentDropoff.longitude},${currentDropoff.latitude}'
