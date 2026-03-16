@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,7 @@ import 'features/auth/presentation/pages/intro_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/home_driver/presentation/pages/home_driver_page.dart';
 import 'features/auth/presentation/pages/intro1_page.dart';
+import 'features/find_trip/presentation/pages/find_trip_page.dart'; // THÊM MỚI
 
 // 3. Logic & Data (Auth)
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
@@ -33,9 +35,15 @@ import 'features/create_trip/domain/usecase/search_location_usecase.dart';
 import 'features/register_driver/data/datasources/driver_remote_data_source.dart';
 import 'features/register_driver/data/repositories/driver_repository_impl.dart';
 import 'features/register_driver/domain/usecases/register_driver_usecase.dart';
-import 'features/register_driver/domain/usecases/check_driver_status_usecase.dart'; // THÊM DÒNG NÀY
+import 'features/register_driver/domain/usecases/check_driver_status_usecase.dart';
 import 'features/register_driver/presentation/bloc/register_driver_bloc.dart';
 import 'features/register_driver/data/datasources/driver_local_data_source.dart';
+
+// 6. Logic & Data (Find Trip) - THÊM MỚI
+import 'features/find_trip/data/datasources/trip_remote_data_source.dart';
+import 'features/find_trip/data/repositories/trip_repository_impl.dart';
+import 'features/find_trip/domain/repositories/trip_repository.dart';
+import 'features/find_trip/presentation/bloc/find_trip_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +67,12 @@ void main() async {
   );
   final searchLocationUseCase = SearchLocationUseCase(createTripRepository);
 
+  // --- Khởi tạo Find Trip (CẬP NHẬT THÊM) ---
+  final findTripRemoteDataSource = TripRemoteDataSourceImpl(dio: dio);
+  final findTripRepository = TripRepositoryImpl(
+    remoteDataSource: findTripRemoteDataSource,
+  );
+
   // --- Khởi tạo Register Driver & Local Data ---
   final driverRemoteDataSource = DriverRemoteDataSourceImpl(client: httpClient);
   final driverLocalDataSource = DriverLocalDataSourceImpl(sharedPreferences: sharedPreferences);
@@ -70,16 +84,17 @@ void main() async {
 
   // Khởi tạo các UseCases cho Driver
   final registerDriverUseCase = RegisterDriverUsecase(driverRepository);
-  final checkDriverStatusUseCase = CheckDriverStatusUseCase(driverRepository); // THÊM DÒNG NÀY
+  final checkDriverStatusUseCase = CheckDriverStatusUseCase(driverRepository);
 
-  // --- KIỂM TRA TRẠNG THÁI DRIVER (Dành cho việc điều hướng lúc khởi động app) ---
+  // --- KIỂM TRA TRẠNG THÁI DRIVER ---
   final bool isDriver = driverLocalDataSource.isDriver();
 
   runApp(MyApp(
     searchLocationUseCase: searchLocationUseCase,
     authRemoteDataSource: authRemoteDataSource,
     registerDriverUseCase: registerDriverUseCase,
-    checkDriverStatusUseCase: checkDriverStatusUseCase, // TRUYỀN VÀO MYAPP
+    checkDriverStatusUseCase: checkDriverStatusUseCase,
+    findTripRepository: findTripRepository, // TRUYỀN THÊM VÀO
     isDriver: isDriver,
   ));
 }
@@ -99,7 +114,8 @@ class MyApp extends StatelessWidget {
   final SearchLocationUseCase searchLocationUseCase;
   final AuthRemoteDataSource authRemoteDataSource;
   final RegisterDriverUsecase registerDriverUseCase;
-  final CheckDriverStatusUseCase checkDriverStatusUseCase; // THÊM DÒNG NÀY
+  final CheckDriverStatusUseCase checkDriverStatusUseCase;
+  final TripRepository findTripRepository; // KHAI BÁO KIỂU CỤ THỂ
   final bool isDriver;
 
   const MyApp({
@@ -107,7 +123,8 @@ class MyApp extends StatelessWidget {
     required this.searchLocationUseCase,
     required this.authRemoteDataSource,
     required this.registerDriverUseCase,
-    required this.checkDriverStatusUseCase, // REQUIRED TRONG CONSTRUCTOR
+    required this.checkDriverStatusUseCase,
+    required this.findTripRepository, // THÊM VÀO CONSTRUCTOR
     required this.isDriver,
   });
 
@@ -127,8 +144,12 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => RegisterDriverBloc(
             registerDriverUsecase: registerDriverUseCase,
-            checkDriverStatusUseCase: checkDriverStatusUseCase, // TRUYỀN VÀO BLOC
+            checkDriverStatusUseCase: checkDriverStatusUseCase,
           ),
+        ),
+        // THÊM BLOC CHO FIND TRIP
+        BlocProvider(
+          create: (context) => FindTripBloc(repository: findTripRepository),
         ),
       ],
       child: MaterialApp(
@@ -141,7 +162,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: AppColors.background,
           fontFamily: 'Poppins',
         ),
-        initialRoute: '/intro',
+        initialRoute: '/find_trip',
 
         routes: {
           '/intro': (context) => const IntroPage(),
@@ -151,6 +172,7 @@ class MyApp extends StatelessWidget {
           '/home_driver': (context) => const HomeDriverPage(),
           '/register_driver': (context) => const DriverRegisterPage(),
           '/create_trip': (context) => const CreateTripPage(),
+          '/find_trip': (context) => const FindTripPage(), // THÊM ROUTE MỚI
         },
       ),
     );
