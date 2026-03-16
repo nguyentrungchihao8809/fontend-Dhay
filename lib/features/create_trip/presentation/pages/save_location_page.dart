@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../domain/entity/saved_trip_entity.dart'; // Nhớ import entity này nhé
 
 class SaveLocationPage extends StatefulWidget {
   final String initialPickup; // Địa chỉ đi lấy từ mục gần đây
@@ -94,7 +95,7 @@ class _SaveLocationPageState extends State<SaveLocationPage> {
                   // TextField cho địa chỉ đi với ICON MỚI
                   _buildEditableAddressField(
                       Icons.circle, _pickupController, "Địa chỉ đi của bạn....",
-                      size: 14), // Tăng size nhẹ cho dễ nhìn giống ảnh 2
+                      size: 14),
                   const Padding(
                     padding: EdgeInsets.only(left: 35),
                     child: Divider(color: Color(0xFFF2F2F2), thickness: 1),
@@ -133,12 +134,30 @@ class _SaveLocationPageState extends State<SaveLocationPage> {
             ),
             const SizedBox(height: 60),
 
-            // --- NÚT LƯU ĐỊA CHỈ ---
+            // --- NÚT LƯU ĐỊA CHỈ (ĐÃ CẬP NHẬT LOGIC TRẢ DỮ LIỆU) ---
             SizedBox(
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () {
+                  if (_nameController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Cưng đặt cái tên cho địa chỉ đã nha!")),
+                    );
+                    return;
+                  }
+
+                  // Gói dữ liệu vào Entity để gửi về trang trước
+                  final newTrip = SavedTripEntity(
+                    name: _nameController.text.trim(),
+                    startLocation: _pickupController.text, // Lấy từ controller để lỡ User có sửa địa chỉ
+                    endLocation: _dropoffController.text,   // Lấy từ controller
+                    tag: _selectedTag,
+                  );
+
+                  // Trả dữ liệu về cho RecentDestinationItem
+                  Navigator.pop(context, newTrip);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
@@ -151,43 +170,40 @@ class _SaveLocationPageState extends State<SaveLocationPage> {
                         fontWeight: FontWeight.bold)),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  // --- WIDGET HỖ TRỢ ---
+  // --- WIDGET HỖ TRỢ (GIỮ NGUYÊN) ---
 
   Widget _buildLabel(String text) => Text(text,
       style: const TextStyle(
           fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Poppins'));
 
-  // --- [CẬP NHẬT] HÀM VẼ ICON GIỐNG ẢNH 2 ---
   Widget _buildEditableAddressField(IconData icon, TextEditingController controller, String hint, {double size = 20}) {
     return Row(
       children: [
-        // LOGIC MỚI ĐỂ VẼ ICON NHƯ ẢNH 2
         icon == Icons.circle
             ? Container(
           width: size,
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.black, width: 2), // Vòng tròn rỗng
+            border: Border.all(color: Colors.black, width: 2),
           ),
           child: Center(
             child: Container(
-              width: size / 2.5, // Chấm đen nhỏ ở giữa
+              width: size / 2.5,
               height: size / 2.5,
               decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
             ),
           ),
         )
             : Icon(icon, size: size, color: Colors.black),
-
         const SizedBox(width: 15),
-
         Expanded(
           child: TextField(
             controller: controller,

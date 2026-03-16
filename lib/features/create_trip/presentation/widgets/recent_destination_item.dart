@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // THÊM DÒNG NÀY
 import '../pages/save_location_page.dart';
+import '../bloc/create_trip_bloc.dart'; // THÊM DÒNG NÀY
+import '../../domain/entity/saved_trip_entity.dart'; // THÊM DÒNG NÀY
 
 class RecentDestinationItem extends StatefulWidget {
   final String startLocation;
@@ -91,6 +94,7 @@ class _RecentDestinationItemState extends State<RecentDestinationItem> {
             child: GestureDetector(
               onTap: () async {
                 if (!_isSaved) {
+                  // CHỈNH SỬA TẠI ĐÂY: Nhận dữ liệu Entity từ trang SaveLocationPage
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -101,13 +105,20 @@ class _RecentDestinationItemState extends State<RecentDestinationItem> {
                     ),
                   );
 
-                  if (result == true) {
-                    setState(() {
-                      _isSaved = true;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Đã lưu địa chỉ thành công!")),
-                    );
+                  // Kiểm tra nếu kết quả trả về là một SavedTripEntity (đã bấm Lưu ở Ảnh 4)
+                  if (result != null && result is SavedTripEntity) {
+                    if (mounted) {
+                      // Đẩy dữ liệu vào Bloc để cập nhật danh sách cho Ảnh 3
+                      context.read<CreateTripBloc>().add(AddSavedTripEvent(result));
+
+                      setState(() {
+                        _isSaved = true;
+                      });
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Đã lưu địa chỉ thành công!")),
+                      );
+                    }
                   }
                 } else {
                   // --- CUSTOM DIALOG ĐÚNG VIBE ---

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entity/create_trip_location_entity.dart';
+import '../../domain/entity/saved_trip_entity.dart'; // THÊM DÒNG NÀY (Nhớ tạo file này trước nhé)
 import '../../domain/usecase/search_location_usecase.dart';
 
 /// ================= ENUM =================
@@ -30,23 +31,32 @@ class SelectLocationEvent extends CreateTripEvent {
   SelectLocationEvent(this.location, this.fieldType);
 }
 
+// --- THÊM EVENT LƯU CHUYẾN ĐI (Dùng cho Ảnh 4 -> Ảnh 3) ---
+class AddSavedTripEvent extends CreateTripEvent {
+  final SavedTripEntity trip;
+  AddSavedTripEvent(this.trip);
+}
+
 /// ================= STATES =================
 abstract class CreateTripState {
-  // Để thuận tiện cho UI, ta đưa các biến dùng chung lên lớp cha
   final List<CreateTripLocationEntity> pickupResults;
   final List<CreateTripLocationEntity> dropoffResults;
   final CreateTripLocationEntity? selectedPickup;
   final CreateTripLocationEntity? selectedDropoff;
+  final List<SavedTripEntity> savedTrips; // BIẾN LƯU TRỮ DANH SÁCH ĐÃ LƯU
 
   CreateTripState({
     this.pickupResults = const [],
     this.dropoffResults = const [],
     this.selectedPickup,
     this.selectedDropoff,
+    this.savedTrips = const [], // KHỞI TẠO DANH SÁCH RỖNG
   });
 }
 
-class CreateTripInitial extends CreateTripState {}
+class CreateTripInitial extends CreateTripState {
+  CreateTripInitial({super.savedTrips}); // Giữ lại danh sách khi reset
+}
 
 class CreateTripLoading extends CreateTripState {
   CreateTripLoading({
@@ -54,6 +64,7 @@ class CreateTripLoading extends CreateTripState {
     super.dropoffResults,
     super.selectedPickup,
     super.selectedDropoff,
+    super.savedTrips,
   });
 }
 
@@ -65,6 +76,7 @@ class CreateTripLoaded extends CreateTripState {
     super.dropoffResults,
     super.selectedPickup,
     super.selectedDropoff,
+    super.savedTrips,
     required this.lastModifiedField,
   });
 }
@@ -85,8 +97,8 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
     on<SearchQueryChanged>((event, emit) {
       _debounce?.cancel();
       if (event.query.isEmpty) {
-        // Nếu xóa trắng thì quay về Initial nhưng vẫn giữ các điểm đã chọn trước đó
-        emit(CreateTripInitial());
+        // Luôn truyền state.savedTrips để không bị mất dữ liệu đã lưu
+        emit(CreateTripInitial(savedTrips: state.savedTrips));
         return;
       }
       _debounce = Timer(const Duration(milliseconds: 600), () {
@@ -101,6 +113,7 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
         dropoffResults: state.dropoffResults,
         selectedPickup: state.selectedPickup,
         selectedDropoff: state.selectedDropoff,
+        savedTrips: state.savedTrips,
       ));
 
       final result = await searchUseCase(event.query);
@@ -113,6 +126,7 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
             dropoffResults: event.fieldType == LocationFieldType.dropoff ? results : state.dropoffResults,
             selectedPickup: state.selectedPickup,
             selectedDropoff: state.selectedDropoff,
+            savedTrips: state.savedTrips,
             lastModifiedField: event.fieldType,
           ));
         },
@@ -121,16 +135,32 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
 
     // 3. Xử lý khi chọn một địa điểm
     on<SelectLocationEvent>((event, emit) {
-      // Khi chọn xong, ta xóa danh sách gợi ý (để ẩn ListView) và lưu điểm đã chọn
       emit(CreateTripLoaded(
-        pickupResults: const [], // Xóa list gợi ý để UI biết đường mà ẩn đi
-        dropoffResults: const [], // Xóa list gợi ý
+        pickupResults: const [],
+        dropoffResults: const [],
         selectedPickup: event.fieldType == LocationFieldType.pickup ? event.location : state.selectedPickup,
         selectedDropoff: event.fieldType == LocationFieldType.dropoff ? event.location : state.selectedDropoff,
+        savedTrips: state.savedTrips,
         lastModifiedField: event.fieldType,
       ));
+    });
 
-      print("Đã chọn địa điểm cho ${event.fieldType}: ${event.location.name}");
+    // 4. XỬ LÝ LƯU CHUYẾN ĐI (LOGIC MỚI CHO ẢNH 3)
+    on<AddSavedTripEvent>((event, emit) {
+      // Lấy danh sách hiện tại và thêm chuyến mới vào
+      final updatedSavedList = List<SavedTripEntity>.from(state.savedTrips)..add(event.trip);
+
+      // Cập nhật state Loaded với danh sách mới mà vẫn giữ nguyên các điểm đang chọn trên form
+      emit(CreateTripLoaded(
+        pickupResults: state.pickupResults,
+        dropoffResults: state.dropoffResults,
+        selectedPickup: state.selectedPickup,
+        selectedDropoff: state.selectedDropoff,
+        savedTrips: updatedSavedList, // Cập nhật kho dữ liệu
+        lastModifiedField: LocationFieldType.pickup,
+      ));
+
+      print("--- Đã lưu thành công chuyến: ${event.trip.name} ---");
     });
   }
 

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../bloc/create_trip_bloc.dart';
 import '../widgets/location_input_field.dart';
 import '../widgets/recent_destination_item.dart';
+import '../widgets/saved_trips_modal.dart'; // ĐẢM BẢO CÓ IMPORT NÀY
 
 class CreateTripPage extends StatefulWidget {
   const CreateTripPage({super.key});
@@ -23,11 +24,9 @@ class _CreateTripPageState extends State<CreateTripPage> {
     return List.generate(30, (index) => DateTime.now().add(Duration(days: index)));
   }
 
-  // --- HÀM HIỂN THỊ DIALOG HẸN GIỜ ---
+  // --- HÀM HIỂN THỊ DIALOG HẸN GIỜ (ẢNH 1) ---
   void _showDateTimePicker(BuildContext context) {
     final dates = _generateDates();
-
-    // LOGIC LÀM TRÒN LÊN 5 PHÚT GẦN NHẤT
     DateTime now = DateTime.now();
     int hour = now.hour;
     int initialMinuteIndex = (now.minute / 5).ceil();
@@ -58,7 +57,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // 1. Header
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Stack(
@@ -78,8 +76,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
                           ],
                         ),
                       ),
-
-                      // 2 & 3. Tiêu đề cột và Vòng quay
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -153,8 +149,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
                           const SizedBox(height: 20),
                         ],
                       ),
-
-                      // 4. Thông tin mô tả
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                         child: Column(
@@ -170,8 +164,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
                           ],
                         ),
                       ),
-
-                      // 5. Nút Xác nhận
                       Padding(
                         padding: const EdgeInsets.fromLTRB(25, 0, 25, 25),
                         child: SizedBox(
@@ -230,19 +222,37 @@ class _CreateTripPageState extends State<CreateTripPage> {
             ),
             const Divider(color: Color(0xFFF9F9F9), thickness: 2, indent: 27, endIndent: 27),
 
-            // --- [CẬP NHẬT] CHIPS SELECTION ---
+            // --- CHIPS SELECTION (ẢNH 2) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
               child: Row(
                 children: [
-                  // Bấm vào đây cũng hiện Dialog
                   _buildChip(
                       Icons.calendar_month,
                       "Lịch Hẹn",
                       onTap: () => _showDateTimePicker(context)
                   ),
                   const SizedBox(width: 26),
-                  _buildChip(Icons.star, "Đã lưu"),
+
+                  // NÚT ĐÃ LƯU: THỰC HIỆN MỞ MODAL (ẢNH 3)
+                  _buildChip(
+                    Icons.star,
+                    "Đã lưu",
+                    onTap: () {
+                      final savedTrips = context.read<CreateTripBloc>().state.savedTrips;
+
+                      if (savedTrips.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Cưng chưa lưu chuyến đi nào hết trơn!")),
+                        );
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (_) => SavedTripsModal(trips: savedTrips),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
@@ -254,7 +264,6 @@ class _CreateTripPageState extends State<CreateTripPage> {
 
             const SizedBox(height: 16),
 
-            // --- NÚT THỜI GIAN XUẤT PHÁT ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: InkWell(
@@ -353,9 +362,8 @@ class _CreateTripPageState extends State<CreateTripPage> {
     );
   }
 
-  // --- [CẬP NHẬT] HÀM BUILD CHIP CÓ ONTAP ---
   Widget _buildChip(IconData icon, String label, {VoidCallback? onTap}) {
-    return Material( // Thêm Material để hiệu ứng InkWell hiển thị đẹp
+    return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,

@@ -180,7 +180,7 @@ class MyApp extends StatelessWidget {
         ),
 
         // Đặt mặc định vào trang hóa đơn để kiểm tra (có thể đổi lại thành /payment hoặc /home)
-        initialRoute: '/trip_invoice',
+        initialRoute: '/create_trip',
 
         routes: {
           '/intro': (context) => const IntroPage(),
