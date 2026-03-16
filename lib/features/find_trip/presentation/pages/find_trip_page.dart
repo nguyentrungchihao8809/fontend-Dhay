@@ -5,6 +5,8 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../bloc/find_trip_bloc.dart';
 import '../bloc/find_trip_event.dart';
 import '../bloc/find_trip_state.dart';
+import '../widgets/location_input_section.dart';
+import '../widgets/history_list_item.dart';
 
 class FindTripPage extends StatefulWidget {
   const FindTripPage({super.key});
@@ -14,8 +16,8 @@ class FindTripPage extends StatefulWidget {
 }
 
 class _FindTripPageState extends State<FindTripPage> {
-  final TextEditingController _pickupController = TextEditingController();
-  final TextEditingController _destinationController = TextEditingController();
+  final _pickupController = TextEditingController();
+  final _destinationController = TextEditingController();
 
   @override
   void initState() {
@@ -23,197 +25,104 @@ class _FindTripPageState extends State<FindTripPage> {
     context.read<FindTripBloc>().add(LoadRecentTripsEvent());
   }
 
-  void _swapLocations() {
-    final temp = _pickupController.text;
-    setState(() {
-      _pickupController.text = _destinationController.text;
-      _destinationController.text = temp;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTopSection(),
-            const Padding(
-              padding: EdgeInsets.only(left: 32, top: 40, bottom: 15),
-              child: Text(
-                'Lịch sử chuyến đi',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            _buildHistoryList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopSection() {
-    return Container(
-      width: double.infinity,
-      height: 335,
-      decoration: const BoxDecoration(
-        color: Color(0xFFD9D8D8), // Rectangle 205
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.25),
-            offset: Offset(0, 6),
-            blurRadius: 4,
-          )
-        ],
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Stack(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // Căn lề trái cho toàn bộ body
         children: [
-          // Back Button
-          Positioned(
-            left: 31,
-            top: 26,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 56,
-                height: 49,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFBFBFB),
-                  border: Border.all(color: const Color(0xFF909090)),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.25), offset: Offset(5, 5), blurRadius: 5)
-                  ],
+          // 1. Header màu xám chuẩn Figma
+          Container(
+            padding: const EdgeInsets.only(top: 50, bottom: 25),
+            decoration: const BoxDecoration(
+              color: Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(35)),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Icon(Icons.arrow_back, color: Colors.black),
-              ),
-            ),
-          ),
-          // Title
-          Positioned(
-            left: 34,
-            top: 106,
-            child: Text(
-              'Bạn muốn đi đâu?',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-                shadows: [const Shadow(color: Color.fromRGBO(0, 0, 0, 0.25), offset: Offset(0, 4))],
-              ),
-            ),
-          ),
-          // Input Fields
-          Positioned(
-            left: 31,
-            top: 148,
-            right: 35,
-            child: CustomTextField(
-              controller: _pickupController,
-              hintText: 'Điểm đón...',
-              prefixIcon: Container(
-                margin: const EdgeInsets.all(10),
-                width: 26, height: 26,
-                decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
-                child: Center(
-                  child: Container(width: 12, height: 12, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Bạn muốn đi đâu?',
+                      style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                LocationInputSection(
+                  pickupController: _pickupController,
+                  destinationController: _destinationController,
+                  onSwap: () {
+                    final temp = _pickupController.text;
+                    _pickupController.text = _destinationController.text;
+                    _destinationController.text = temp;
+                  },
+                ),
+                const SizedBox(height: 20),
+                Container(
+                    width: 80,
+                    height: 5,
+                    decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(10)
+                    )
+                ),
+              ],
             ),
           ),
-          Positioned(
-            left: 31,
-            top: 213,
-            right: 35,
-            child: CustomTextField(
-              controller: _destinationController,
-              hintText: 'Điểm đến...',
-              prefixIcon: const Icon(Icons.location_on, color: Colors.black, size: 30),
-            ),
-          ),
-          // Swap Icon
-          Positioned(
-            right: 15,
-            top: 185,
-            child: IconButton(
-              icon: const Icon(Icons.swap_vert, size: 30, color: Colors.black),
-              onPressed: _swapLocations,
-            ),
-          ),
-          // Handle bar at bottom of gray area
-          Positioned(
-            left: 164,
-            top: 306,
-            child: Container(
-              width: 84, height: 8,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                border: Border.all(color: Colors.white),
-                borderRadius: BorderRadius.circular(15),
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
 
-  Widget _buildHistoryList() {
-    return BlocBuilder<FindTripBloc, FindTripState>(
-      builder: (context, state) {
-        if (state is FindTripLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is FindTripError) {
-          return Center(child: Text(state.message, style: const TextStyle(color: Colors.red)));
-        } else if (state is FindTripLoaded) {
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.recentTrips.length,
-            itemBuilder: (context, index) {
-              final item = state.recentTrips[index];
-              return _buildHistoryItem(item);
-            },
-          );
-        }
-        return const SizedBox();
-      },
-    );
-  }
-
-  Widget _buildHistoryItem(dynamic item) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 31, vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4F2F2),
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.25), offset: Offset(0, 5), blurRadius: 5)
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            item.name,
-            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${item.distance} km – ${item.address}',
-            style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF3B3939)),
+          // 2. PHẦN LỊCH SỬ CHUYẾN ĐI (Đã thêm chữ ở đây)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 31, top: 30, bottom: 10),
+                  child: Text(
+                    'Lịch sử chuyến đi',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: BlocBuilder<FindTripBloc, FindTripState>(
+                    builder: (context, state) {
+                      if (state is FindTripLoaded) {
+                        return ListView.builder(
+                          padding: EdgeInsets.zero, // Xóa padding mặc định của ListView
+                          itemCount: state.recentTrips.length,
+                          itemBuilder: (context, index) => HistoryListItem(
+                            location: state.recentTrips[index],
+                            onTap: () => _destinationController.text = state.recentTrips[index].name,
+                          ),
+                        );
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

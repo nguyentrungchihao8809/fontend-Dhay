@@ -17,45 +17,31 @@ class HistoryListItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 346,
-        height: 62,
-        margin: const EdgeInsets.only(bottom: 17), // Khoảng cách giữa các item
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 31, vertical: 8),
+        padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: const Color(0xFFF4F2F2),
-          border: Border.all(color: Colors.black),
+          border: Border.all(color: Colors.black, width: 1),
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [
             BoxShadow(
               color: Color.fromRGBO(0, 0, 0, 0.25),
-              offset: Offset(0, 5),
-              blurRadius: 5,
-            ),
+              offset: Offset(0, 4),
+              blurRadius: 4,
+            )
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Tên địa điểm (Figma size 15px)
             Text(
               location.name,
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
             ),
-            // Khoảng cách và địa chỉ chi tiết (Figma size 13px)
+            const SizedBox(height: 5),
             Text(
               '${location.distance} km – ${location.address}',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF3B3939),
-              ),
+              style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF555555)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

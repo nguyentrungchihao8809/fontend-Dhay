@@ -21,7 +21,6 @@ class FindTripLoaded extends FindTripState {
 class FindTripError extends FindTripState {
   final String message;
   FindTripError(this.message);
-
   @override
   List<Object?> get props => [message];
 }
