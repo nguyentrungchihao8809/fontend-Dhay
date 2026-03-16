@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entity/create_trip_location_entity.dart';
-import '../../domain/entity/saved_trip_entity.dart'; // THÊM DÒNG NÀY (Nhớ tạo file này trước nhé)
+import '../../domain/entity/saved_trip_entity.dart';
 import '../../domain/usecase/search_location_usecase.dart';
+import '../../domain/entity/trip_route_entity.dart';
 
 /// ================= ENUM =================
 enum LocationFieldType { pickup, dropoff }
@@ -10,28 +13,24 @@ enum LocationFieldType { pickup, dropoff }
 /// ================= EVENTS =================
 abstract class CreateTripEvent {}
 
-// Sự kiện khi User gõ phím
 class SearchQueryChanged extends CreateTripEvent {
   final String query;
   final LocationFieldType fieldType;
   SearchQueryChanged(this.query, this.fieldType);
 }
 
-// Sự kiện nội bộ để xử lý Debounce
 class _FetchLocationsInternal extends CreateTripEvent {
   final String query;
   final LocationFieldType fieldType;
   _FetchLocationsInternal(this.query, this.fieldType);
 }
 
-// Sự kiện khi User nhấn chọn 1 địa chỉ từ danh sách
 class SelectLocationEvent extends CreateTripEvent {
   final CreateTripLocationEntity location;
   final LocationFieldType fieldType;
   SelectLocationEvent(this.location, this.fieldType);
 }
 
-// --- THÊM EVENT LƯU CHUYẾN ĐI (Dùng cho Ảnh 4 -> Ảnh 3) ---
 class AddSavedTripEvent extends CreateTripEvent {
   final SavedTripEntity trip;
   AddSavedTripEvent(this.trip);
@@ -43,19 +42,22 @@ abstract class CreateTripState {
   final List<CreateTripLocationEntity> dropoffResults;
   final CreateTripLocationEntity? selectedPickup;
   final CreateTripLocationEntity? selectedDropoff;
-  final List<SavedTripEntity> savedTrips; // BIẾN LƯU TRỮ DANH SÁCH ĐÃ LƯU
+  final List<SavedTripEntity> savedTrips;
+  // Đưa routeSuggestions lên đây để Page luôn truy cập được
+  final List<TripRouteEntity> routeSuggestions;
 
   CreateTripState({
     this.pickupResults = const [],
     this.dropoffResults = const [],
     this.selectedPickup,
     this.selectedDropoff,
-    this.savedTrips = const [], // KHỞI TẠO DANH SÁCH RỖNG
+    this.savedTrips = const [],
+    this.routeSuggestions = const [],
   });
 }
 
 class CreateTripInitial extends CreateTripState {
-  CreateTripInitial({super.savedTrips}); // Giữ lại danh sách khi reset
+  CreateTripInitial({super.savedTrips});
 }
 
 class CreateTripLoading extends CreateTripState {
@@ -65,6 +67,7 @@ class CreateTripLoading extends CreateTripState {
     super.selectedPickup,
     super.selectedDropoff,
     super.savedTrips,
+    super.routeSuggestions,
   });
 }
 
@@ -77,6 +80,7 @@ class CreateTripLoaded extends CreateTripState {
     super.selectedPickup,
     super.selectedDropoff,
     super.savedTrips,
+    super.routeSuggestions,
     required this.lastModifiedField,
   });
 }
@@ -93,12 +97,19 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
 
   CreateTripBloc({required this.searchUseCase}) : super(CreateTripInitial()) {
 
-    // 1. Xử lý khi User nhập văn bản
+    // 1. XỬ LÝ TÌM KIẾM (DEBOUNCE)
     on<SearchQueryChanged>((event, emit) {
       _debounce?.cancel();
       if (event.query.isEmpty) {
-        // Luôn truyền state.savedTrips để không bị mất dữ liệu đã lưu
-        emit(CreateTripInitial(savedTrips: state.savedTrips));
+        emit(CreateTripLoaded(
+          pickupResults: const [],
+          dropoffResults: const [],
+          selectedPickup: state.selectedPickup,
+          selectedDropoff: state.selectedDropoff,
+          savedTrips: state.savedTrips,
+          lastModifiedField: event.fieldType,
+          routeSuggestions: state.routeSuggestions,
+        ));
         return;
       }
       _debounce = Timer(const Duration(milliseconds: 600), () {
@@ -106,7 +117,7 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
       });
     });
 
-    // 2. Xử lý gọi API Mapbox
+    // 2. GỌI API TÌM ĐỊA CHỈ
     on<_FetchLocationsInternal>((event, emit) async {
       emit(CreateTripLoading(
         pickupResults: state.pickupResults,
@@ -114,6 +125,7 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
         selectedPickup: state.selectedPickup,
         selectedDropoff: state.selectedDropoff,
         savedTrips: state.savedTrips,
+        routeSuggestions: state.routeSuggestions,
       ));
 
       final result = await searchUseCase(event.query);
@@ -128,39 +140,84 @@ class CreateTripBloc extends Bloc<CreateTripEvent, CreateTripState> {
             selectedDropoff: state.selectedDropoff,
             savedTrips: state.savedTrips,
             lastModifiedField: event.fieldType,
+            routeSuggestions: state.routeSuggestions,
           ));
         },
       );
     });
 
-    // 3. Xử lý khi chọn một địa điểm
-    on<SelectLocationEvent>((event, emit) {
+    // 3. XỬ LÝ CHỌN ĐỊA ĐIỂM + GỌI API LẤY ĐƯỜNG THẬT
+    on<SelectLocationEvent>((event, emit) async {
+      CreateTripLocationEntity? currentPickup = state.selectedPickup;
+      CreateTripLocationEntity? currentDropoff = state.selectedDropoff;
+
+      if (event.fieldType == LocationFieldType.pickup) {
+        currentPickup = event.location;
+      } else {
+        currentDropoff = event.location;
+      }
+
+      List<TripRouteEntity> apiSuggestions = [];
+
+      // Chỉ gọi API khi đủ 2 điểm
+      if (currentPickup != null && currentDropoff != null) {
+        try {
+          final String token = 'pk.eyJ1IjoibWluaHF1YW4xMjMiLCJhIjoiY203eG50NjBvMGFlODJycHY3N3B4M2FyayJ9.O3pW0G6iGOfWpM514O6jMw';
+          final url = 'https://api.mapbox.com/directions/v5/mapbox/driving/'
+              '${currentPickup.longitude},${currentPickup.latitude};'
+              '${currentDropoff.longitude},${currentDropoff.latitude}'
+              '?steps=true&access_token=$token';
+
+          final response = await http.get(Uri.parse(url));
+
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            final List steps = data['routes'][0]['legs'][0]['steps'];
+
+            List<String> realStreets = steps
+                .map((s) => s['name'].toString())
+                .where((name) => name.isNotEmpty && name != "null" && !name.contains("unnamed"))
+                .toSet()
+                .toList();
+
+            apiSuggestions = [
+              TripRouteEntity(
+                startLocation: currentPickup.name,
+                endLocation: currentDropoff.name,
+                waypoints: realStreets.length > 2 ? realStreets.sublist(0, 3) : realStreets,
+                rating: 4.8,
+              ),
+            ];
+          }
+        } catch (e) {
+          print("DEBUG: Lỗi gọi lộ trình thật: $e");
+        }
+      }
+
       emit(CreateTripLoaded(
         pickupResults: const [],
         dropoffResults: const [],
-        selectedPickup: event.fieldType == LocationFieldType.pickup ? event.location : state.selectedPickup,
-        selectedDropoff: event.fieldType == LocationFieldType.dropoff ? event.location : state.selectedDropoff,
+        selectedPickup: currentPickup,
+        selectedDropoff: currentDropoff,
         savedTrips: state.savedTrips,
         lastModifiedField: event.fieldType,
+        routeSuggestions: apiSuggestions,
       ));
     });
 
-    // 4. XỬ LÝ LƯU CHUYẾN ĐI (LOGIC MỚI CHO ẢNH 3)
+    // 4. LƯU CHUYẾN ĐI
     on<AddSavedTripEvent>((event, emit) {
-      // Lấy danh sách hiện tại và thêm chuyến mới vào
       final updatedSavedList = List<SavedTripEntity>.from(state.savedTrips)..add(event.trip);
 
-      // Cập nhật state Loaded với danh sách mới mà vẫn giữ nguyên các điểm đang chọn trên form
       emit(CreateTripLoaded(
-        pickupResults: state.pickupResults,
-        dropoffResults: state.dropoffResults,
+        pickupResults: const [],
+        dropoffResults: const [],
         selectedPickup: state.selectedPickup,
         selectedDropoff: state.selectedDropoff,
-        savedTrips: updatedSavedList, // Cập nhật kho dữ liệu
+        savedTrips: updatedSavedList,
         lastModifiedField: LocationFieldType.pickup,
+        routeSuggestions: state.routeSuggestions,
       ));
-
-      print("--- Đã lưu thành công chuyến: ${event.trip.name} ---");
     });
   }
 

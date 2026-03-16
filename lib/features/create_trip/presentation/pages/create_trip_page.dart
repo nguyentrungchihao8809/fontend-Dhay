@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 import '../bloc/create_trip_bloc.dart';
 import '../widgets/location_input_field.dart';
 import '../widgets/recent_destination_item.dart';
-import '../widgets/saved_trips_modal.dart'; // ĐẢM BẢO CÓ IMPORT NÀY
+import '../widgets/saved_trips_modal.dart';
+import '../widgets/route_suggestion_item.dart';
+import '../../domain/entity/trip_route_entity.dart';
 
 class CreateTripPage extends StatefulWidget {
   const CreateTripPage({super.key});
@@ -203,6 +205,32 @@ class _CreateTripPageState extends State<CreateTripPage> {
     );
   }
 
+  // --- HÀM BUILD SECTION GỢI Ý TUYẾN ĐƯỜNG ---
+  Widget _buildSuggestionSection(List<TripRouteEntity> suggestions) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 24, top: 20, bottom: 10),
+          child: Text(
+            "Gợi ý",
+            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 20, color: Colors.black),
+          ),
+        ),
+        const Divider(color: Color(0xFFF9F9F9), thickness: 2, indent: 24, endIndent: 24),
+        ListView.builder(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: suggestions.length,
+          itemBuilder: (context, index) {
+            return RouteSuggestionItem(route: suggestions[index]);
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,7 +250,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
             ),
             const Divider(color: Color(0xFFF9F9F9), thickness: 2, indent: 27, endIndent: 27),
 
-            // --- CHIPS SELECTION (ẢNH 2) ---
+            // --- CHIPS SELECTION ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
               child: Row(
@@ -233,14 +261,11 @@ class _CreateTripPageState extends State<CreateTripPage> {
                       onTap: () => _showDateTimePicker(context)
                   ),
                   const SizedBox(width: 26),
-
-                  // NÚT ĐÃ LƯU: THỰC HIỆN MỞ MODAL (ẢNH 3)
                   _buildChip(
                     Icons.star,
                     "Đã lưu",
                     onTap: () {
                       final savedTrips = context.read<CreateTripBloc>().state.savedTrips;
-
                       if (savedTrips.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Cưng chưa lưu chuyến đi nào hết trơn!")),
@@ -293,34 +318,65 @@ class _CreateTripPageState extends State<CreateTripPage> {
                   if (state is CreateTripLoading) {
                     return const Center(child: CircularProgressIndicator(color: Colors.black));
                   }
+
+                  // 1. NẾU ĐÃ CHỌN ĐỦ 2 ĐIỂM -> ƯU TIÊN HIỆN XƯƠNG CÁ (GỢI Ý)
+                  if (state.selectedPickup != null && state.selectedDropoff != null) {
+                    // Nếu chưa có dữ liệu từ API, mình tạo dữ liệu "đang tải" hoặc mặc định để khung xương không bị mất
+                    List<TripRouteEntity> displaySuggestions = state.routeSuggestions;
+
+                    if (displaySuggestions.isEmpty) {
+                      // Đoạn này giúp khung xương cá luôn hiện ra dù API chưa kịp về
+                      displaySuggestions = [
+                        TripRouteEntity(
+                          startLocation: state.selectedPickup!.name.split(',')[0],
+                          endLocation: state.selectedDropoff!.name.split(',')[0],
+                          waypoints: ["Đang tìm tuyến đường...", "Vui lòng chờ giây lát"],
+                          rating: 5.0,
+                        ),
+                      ];
+                    }
+
+                    return SingleChildScrollView(
+                      child: _buildSuggestionSection(displaySuggestions),
+                    );
+                  }
+
+                  // 2. HIỂN THỊ KẾT QUẢ TÌM KIẾM KHI ĐANG GÕ (SEARCH RESULTS)
                   if (state is CreateTripLoaded) {
                     final results = state.lastModifiedField == LocationFieldType.pickup
                         ? state.pickupResults
                         : state.dropoffResults;
-                    if (results.isEmpty) return _buildRecentSection();
-                    return ListView.separated(
-                      padding: const EdgeInsets.all(24),
-                      itemCount: results.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final location = results[index];
-                        return ListTile(
-                          leading: const Icon(Icons.location_on_outlined, color: Colors.grey),
-                          title: Text(location.name, style: const TextStyle(fontFamily: 'Poppins', fontSize: 14)),
-                          subtitle: Text(location.address, style: const TextStyle(fontSize: 12, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          onTap: () {
-                            context.read<CreateTripBloc>().add(SelectLocationEvent(location, state.lastModifiedField));
-                            FocusScope.of(context).unfocus();
-                          },
-                        );
-                      },
-                    );
+
+                    if (results.isNotEmpty) {
+                      return ListView.separated(
+                        padding: const EdgeInsets.all(24),
+                        itemCount: results.length,
+                        separatorBuilder: (context, index) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final location = results[index];
+                          return ListTile(
+                            leading: const Icon(Icons.location_on_outlined, color: Colors.grey),
+                            title: Text(location.name, style: const TextStyle(fontFamily: 'Poppins', fontSize: 14)),
+                            subtitle: Text(location.address, style: const TextStyle(fontSize: 12, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                            onTap: () {
+                              context.read<CreateTripBloc>().add(SelectLocationEvent(location, state.lastModifiedField));
+                              FocusScope.of(context).unfocus();
+                            },
+                          );
+                        },
+                      );
+                    }
                   }
+
                   if (state is CreateTripError) return Center(child: Text(state.message));
+
+                  // 3. MẶC ĐỊNH HIỂN THỊ "GẦN ĐÂY" (CHỈ HIỆN KHI CHƯA CHỌN ĐỦ 2 ĐIỂM)
                   return _buildRecentSection();
                 },
               ),
             ),
+
+
           ],
         ),
       ),
