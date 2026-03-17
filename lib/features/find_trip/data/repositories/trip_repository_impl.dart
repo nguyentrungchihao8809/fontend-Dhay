@@ -30,20 +30,20 @@ class TripRepositoryImpl implements TripRepository {
       final List<LocationEntity> mockHistory = [
         const LocationEntity(
             id: '1',
-            name: 'Phan Huy Ich Emart',
-            address: '385 Phan Huy Ich Street, Ward 4, Go Vap District',
+            name: 'Emart Phan Huy Ích',
+            address: '385 Phan Huy Ích, phường 4, quận Gò Vấp, TP. Hồ Chí Minh',
             distance: 2.6
         ),
         const LocationEntity(
             id: '2',
-            name: 'University of Transport Ho Chi Minh City',
-            address: '70 To Ky Street, Ho Chi Minh City',
+            name: 'Trường Đại học GTVT TP. Hồ Chí Minh',
+            address: '70 Tô Ký, quận 12, TP. Hồ Chí Minh',
             distance: 3.5
         ),
         const LocationEntity(
             id: '3',
             name: 'The Landmark 81',
-            address: '208 Nguyen Huu Canh Street, Ward 22, Binh Thanh District',
+            address: '208 Nguyễn Hữu Cảnh, phường 22, quận Bình Thạnh, TP. Hồ Chí Minh',
             distance: 17.0
         ),
       ];
