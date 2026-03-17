@@ -36,7 +36,7 @@ class _FindTripPageState extends State<FindTripPage> {
           Container(
             padding: const EdgeInsets.only(top: 50, bottom: 25),
             decoration: const BoxDecoration(
-              color: Color(0xFFD9D9D9),
+              color: Color(0xFFBDBDBD),
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(35)),
             ),
             child: Column(

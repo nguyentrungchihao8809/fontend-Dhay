@@ -19,14 +19,14 @@ class CustomTextField extends StatelessWidget {
     return Container(
       height: 52,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white, // Đã là màu trắng
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.black, width: 1.2),
+        // Nếu muốn ô trắng trông sạch hơn, bạn có thể chỉnh border mỏng lại hoặc đổi màu
+        border: Border.all(color: Colors.black.withOpacity(0.1), width: 1),
         boxShadow: [
           BoxShadow(
-            // Sửa cảnh báo vàng bằng cách dùng withAlpha hoặc withValues
-            color: Colors.black.withAlpha(26), // 26 tương đương với 10% opacity
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
@@ -36,12 +36,16 @@ class CustomTextField extends StatelessWidget {
         style: const TextStyle(fontSize: 15, color: Colors.black),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFF8E8E8E), fontSize: 14),
+          // ĐỔI MÀU Ở ĐÂY: Chỉnh từ Color(0xFF8E8E8E) sang Colors.black
+          hintStyle: const TextStyle(
+              color: Colors.black, // Chữ "Điểm đón", "Điểm đến" sẽ thành màu đen
+              fontSize: 14,
+              fontWeight: FontWeight.w500 // Có thể thêm đậm một chút cho rõ
+          ),
           prefixIcon: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: prefixIcon,
           ),
-          // Mặc định là kính lúp cho trang FindTrip
           suffixIcon: suffixIcon ?? const Icon(Icons.search, color: Colors.black, size: 22),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
