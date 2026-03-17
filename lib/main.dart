@@ -37,6 +37,10 @@ import 'features/register_driver/domain/usecases/check_driver_status_usecase.dar
 import 'features/register_driver/presentation/bloc/register_driver_bloc.dart';
 import 'features/register_driver/data/datasources/driver_local_data_source.dart';
 
+import 'core/services/notification_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -132,6 +136,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'DHAY Driver',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
@@ -140,7 +145,12 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
           scaffoldBackgroundColor: AppColors.background,
           fontFamily: 'Poppins',
-        ),
+        ), // Kết thúc ThemeData ở đây
+
+        // Di chuyển builder ra ngoài ThemeData
+        builder: (context, child) {
+          return child!;
+        },
         initialRoute: '/intro',
 
         routes: {
