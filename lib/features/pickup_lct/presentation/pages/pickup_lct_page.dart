@@ -45,8 +45,6 @@ class PickupLctPage extends StatelessWidget {
             child: CustomTextField(
               hintText: "Điểm đón...",
               prefixIcon: _buildMapDot(),
-              // Thêm icon location ở cuối cho giống trang định vị
-              suffixIcon: const Icon(Icons.my_location, color: Colors.black, size: 22),
             ),
           ),
 

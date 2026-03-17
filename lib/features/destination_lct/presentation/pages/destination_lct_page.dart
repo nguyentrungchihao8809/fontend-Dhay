@@ -1,8 +1,10 @@
+// lib/features/destination_lct/presentation/pages/destination_lct_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/widgets/custom_text_field.dart';
-import '../bloc/destination_bloc.dart'; // Đã đổi sang DestinationBloc
+import '../bloc/destination_bloc.dart';
 
 class DestinationLctPage extends StatelessWidget {
   const DestinationLctPage({super.key});
@@ -23,7 +25,7 @@ class DestinationLctPage extends StatelessWidget {
             ),
           ),
 
-          // 2. Nút Quay lại - Đồng nhất với Find Trip
+          // 2. Nút Quay lại
           Positioned(
             top: 50,
             left: 20,
@@ -37,15 +39,17 @@ class DestinationLctPage extends StatelessWidget {
             ),
           ),
 
-          // 3. Thanh tìm kiếm - Đổi thành "Điểm đến"
+          // 3. Thanh tìm kiếm - ĐÃ CẬP NHẬT THEO Ý BẠN
           Positioned(
             top: 130,
             left: 30,
             right: 30,
             child: CustomTextField(
-              hintText: "Điểm đến...", // ĐÃ ĐỔI
-              prefixIcon: _buildMapDot(),
-              suffixIcon: const Icon(Icons.my_location, color: Colors.black, size: 22),
+              hintText: "Điểm đến...",
+              // THAY THÀNH ICON GHIM MÀU ĐEN
+              prefixIcon: const Icon(Icons.location_on, color: Colors.black, size: 24),
+              // XÓA ICON TÂM NGẮM BÊN PHẢI
+              suffixIcon: const SizedBox.shrink(),
             ),
           ),
 
@@ -64,20 +68,20 @@ class DestinationLctPage extends StatelessWidget {
       height: 411,
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Color(0xFFD9D8D8),
+        color: Color(0xFFD9D8D8), // Màu xám panel
         borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 31),
-      child: BlocBuilder<DestinationBloc, DestinationState>( // ĐÃ ĐỔI SANG DESTINATION
+      child: BlocBuilder<DestinationBloc, DestinationState>(
         builder: (context, state) {
           String name = "Đang định vị...";
           String addr = "Vui lòng đợi giây lát...";
 
-          if (state is DestinationLoaded) { // ĐÃ ĐỔI STATE
+          if (state is DestinationLoaded) {
             name = state.name;
             addr = state.address;
           }
-          if (state is DestinationError) { // ĐÃ ĐỔI STATE
+          if (state is DestinationError) {
             name = "Lỗi kết nối";
             addr = state.message;
           }
@@ -96,11 +100,11 @@ class DestinationLctPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 33),
-              _labelText("Điểm đến:"), // ĐÃ ĐỔI
+              _labelText("Điểm đến:"),
               _infoCard(name, addr, 79),
               const SizedBox(height: 20),
               _labelText("Ghi chú:"),
-              _infoCard("Nhập ghi chú cho điểm đến...", "", 45, isHint: true), // ĐÃ ĐỔI
+              _infoCard("Nhập ghi chú cho điểm đến...", "", 45, isHint: true),
               const SizedBox(height: 40),
               _buildConfirmButton(),
             ],
@@ -120,25 +124,44 @@ class DestinationLctPage extends StatelessWidget {
 
   Widget _infoCard(String t1, String t2, double h, {bool isHint = false}) {
     return Container(
-      height: h, width: double.infinity,
+      height: h,
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 15),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F2F2),
-        border: Border.all(color: Colors.black),
+        color: Colors.white, // 1. ĐỔI LẠI THÀNH MÀU TRẮNG
         borderRadius: BorderRadius.circular(20),
+        // 2. VIỀN ĐEN TO ĐẬM
+        border: Border.all(
+          color: Colors.black,
+          width: 2.0, // Độ dày viền đen
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t1, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: isHint ? Colors.black38 : Colors.black)),
+          Text(
+            t1,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: isHint ? Colors.black38 : Colors.black, // Chữ đen
+            ),
+          ),
           if (t2.isNotEmpty)
-            Text(t2, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF3B3939)), maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(
+              t2,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: const Color(0xFF3B3939),
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
         ],
       ),
     );
   }
-
   Widget _buildConfirmButton() => Center(
     child: Container(
       width: 243, height: 45,
@@ -149,18 +172,10 @@ class DestinationLctPage extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-            "Xác nhận điểm đến", // ĐÃ ĐỔI
+            "Xác nhận điểm đến",
             style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)
         ),
       ),
-    ),
-  );
-
-  Widget _buildMapDot() => Container(
-    width: 20, height: 20,
-    decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
-    child: Center(
-      child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
     ),
   );
 }
