@@ -68,7 +68,7 @@ class DestinationLctPage extends StatelessWidget {
       height: 411,
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Color(0xFFD9D8D8), // Màu xám panel
+        color: Color(0xFFBDBDBD), // Màu xám panel
         borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 31),
@@ -104,7 +104,7 @@ class DestinationLctPage extends StatelessWidget {
               _infoCard(name, addr, 79),
               const SizedBox(height: 20),
               _labelText("Ghi chú:"),
-              _infoCard("Nhập ghi chú cho điểm đến...", "", 45, isHint: true),
+              _infoCard("Nhập ghi chú...", "", 45, isHint: true),
               const SizedBox(height: 40),
               _buildConfirmButton(),
             ],
