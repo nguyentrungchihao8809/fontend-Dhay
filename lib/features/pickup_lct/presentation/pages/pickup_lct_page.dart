@@ -66,7 +66,7 @@ class PickupLctPage extends StatelessWidget {
       height: 411,
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Color(0xFFD9D8D8),
+        color: Color(0xFFBDBDBD),
         borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 31),

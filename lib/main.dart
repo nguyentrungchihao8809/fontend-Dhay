@@ -201,7 +201,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: AppColors.background,
           fontFamily: 'Poppins',
         ),
-        initialRoute: '/find_trip',
+        initialRoute: '/pickup_lct',
 
         routes: {
           '/intro': (context) => const IntroPage(),
