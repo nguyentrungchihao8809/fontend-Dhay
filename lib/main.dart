@@ -20,6 +20,7 @@ import 'features/home_driver/presentation/pages/home_driver_page.dart';
 import 'features/auth/presentation/pages/intro1_page.dart';
 import 'features/find_trip/presentation/pages/find_trip_page.dart';
 import 'features/pickup_lct/presentation/pages/pickup_lct_page.dart'; // THÊM MỚI PICKUP PAGE
+import 'features/destination_lct/presentation/pages/destination_lct_page.dart'; // [UPDATE] Thêm Destination Page
 
 // 3. Logic & Data (Auth)
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
@@ -51,6 +52,12 @@ import 'features/pickup_lct/data/datasources/pickup_remote_datasource.dart';
 import 'features/pickup_lct/data/repositories/pickup_repository_impl.dart';
 import 'features/pickup_lct/domain/repositories/pickup_repository.dart';
 import 'features/pickup_lct/presentation/bloc/pickup_bloc.dart';
+
+// 8. Logic & Data (Destination LCT) - [UPDATE] Thêm imports
+import 'features/destination_lct/data/datasources/destination_remote_datasource.dart';
+import 'features/destination_lct/data/repositories/destination_repository_impl.dart';
+import 'features/destination_lct/domain/repositories/destination_repository.dart';
+import 'features/destination_lct/presentation/bloc/destination_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,6 +93,12 @@ void main() async {
     remoteDataSource: pickupRemoteDataSource,
   );
 
+  // --- Khởi tạo Destination LCT - [UPDATE] Khởi tạo repository
+  final destinationRemoteDataSource = DestinationRemoteDataSourceImpl();
+  final destinationRepository = DestinationRepositoryImpl(
+    remoteDataSource: destinationRemoteDataSource,
+  );
+
   // --- Khởi tạo Register Driver & Local Data ---
   final driverRemoteDataSource = DriverRemoteDataSourceImpl(client: httpClient);
   final driverLocalDataSource = DriverLocalDataSourceImpl(sharedPreferences: sharedPreferences);
@@ -109,6 +122,7 @@ void main() async {
     checkDriverStatusUseCase: checkDriverStatusUseCase,
     findTripRepository: findTripRepository,
     pickupRepository: pickupRepository, // TRUYỀN THÊM VÀO
+    destinationRepository: destinationRepository, // [UPDATE] Truyền vào MyApp
     isDriver: isDriver,
   ));
 }
@@ -131,6 +145,7 @@ class MyApp extends StatelessWidget {
   final CheckDriverStatusUseCase checkDriverStatusUseCase;
   final TripRepository findTripRepository;
   final PickupRepository pickupRepository; // KHAI BÁO THÊM
+  final DestinationRepository destinationRepository; // [UPDATE] Khai báo DestinationRepository
   final bool isDriver;
 
   const MyApp({
@@ -141,6 +156,7 @@ class MyApp extends StatelessWidget {
     required this.checkDriverStatusUseCase,
     required this.findTripRepository,
     required this.pickupRepository, // THÊM VÀO CONSTRUCTOR
+    required this.destinationRepository, // [UPDATE] Thêm vào constructor
     required this.isDriver,
   });
 
@@ -170,6 +186,10 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => PickupBloc(pickupRepository),
         ),
+        // [UPDATE] Thêm Bloc cho Destination
+        BlocProvider(
+          create: (context) => DestinationBloc(destinationRepository),
+        ),
       ],
       child: MaterialApp(
         title: 'DHAY Driver',
@@ -181,7 +201,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: AppColors.background,
           fontFamily: 'Poppins',
         ),
-        initialRoute: '/pickup_lct',
+        initialRoute: '/destination_lct',
 
         routes: {
           '/intro': (context) => const IntroPage(),
@@ -193,6 +213,7 @@ class MyApp extends StatelessWidget {
           '/create_trip': (context) => const CreateTripPage(),
           '/find_trip': (context) => const FindTripPage(),
           '/pickup_lct': (context) => const PickupLctPage(), // THÊM ROUTE CHO TRANG MỚI
+          '/destination_lct': (context) => const DestinationLctPage(), // [UPDATE] Thêm Route Destination
         },
       ),
     );
